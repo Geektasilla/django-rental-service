@@ -1,0 +1,13 @@
+djangorestframework
+Pillow
+djangorestframework-simplejwt
+python-dotenv
+drf-spectacular
+black
+isort
+pylint
+flake8
+mysqlclient
+django-filter
+
+

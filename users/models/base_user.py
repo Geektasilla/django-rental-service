@@ -100,6 +100,22 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["phone"]
 
+    class GenderChoices(models.TextChoices):
+        """
+
+        """
+        MALE = 'male', _('Male')
+        FEMALE = 'female', _('Female')
+        OTHER = 'other', _('Other / Non-binary')
+        UNSPECIFIED = 'unspecified', _('Prefer not to say')  # По умолчанию
+
+    gender = models.CharField(
+        _("gender"),
+        max_length=20,
+        choices=GenderChoices.choices,
+        default=GenderChoices.UNSPECIFIED,
+    )
+
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")

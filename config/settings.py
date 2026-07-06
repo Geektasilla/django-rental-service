@@ -13,13 +13,10 @@ from pathlib import Path
 from environ import Env
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = Env()
 env.read_env(BASE_DIR / '.env')
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -28,11 +25,10 @@ env.read_env(BASE_DIR / '.env')
 SECRET_KEY = env.str('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG',  default=False)
+DEBUG = env.bool('DEBUG', default=False)
 
 # ALLOWED_HOSTS = env.str('ALLOWED_HOSTS').split(',')
 ALLOWED_HOSTS = env.str('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
-
 
 # Application definition
 
@@ -49,6 +45,7 @@ INSTALLED_APPS = [
     'reviews.apps.ReviewsConfig',
     'notifications.apps.NotificationsConfig',
     'support.apps.SupportConfig',
+    'statistics.apps.StatisticsConfig',
 ]
 
 MIDDLEWARE = [
@@ -81,19 +78,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-if env.bool('USE_REMOTE'):
+if env.bool('USE_REMOTE', default=False):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': env.str('MYSQL_NAME'),
-            'USER': env.str('MYSQL_USER'),
-            'PASSWORD': env.str('MYSQL_PASSWORD'),
-            'HOST': env.str('MYSQL_HOST'),
-            'PORT': env.int('MYSQL_PORT'),
+            'NAME': env.str('DB_NAME'),
+            'USER': env.str('DB_USER'),
+            'PASSWORD': env.str('DB_PASSWORD'),
+            'HOST': env.str('DB_HOST'),
+            'PORT': env.int('DB_PORT'),
         },
     }
 
@@ -105,7 +101,6 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -125,7 +120,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -137,12 +131,14 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # CACHE CONFIGURATION
 
@@ -155,3 +151,6 @@ CACHES = {
         }
     }
 }
+
+
+AUTH_USER_MODEL = 'users.User'

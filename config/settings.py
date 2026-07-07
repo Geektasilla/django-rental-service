@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 from pathlib import Path
 from environ import Env
+from django.utils.translation import gettext_lazy as _
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -45,12 +46,13 @@ INSTALLED_APPS = [
     'reviews.apps.ReviewsConfig',
     'notifications.apps.NotificationsConfig',
     'support.apps.SupportConfig',
-    'statistics.apps.StatisticsConfig',
+    'analytics.apps.AnalyticsConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -125,6 +127,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
+LANGUAGES = [
+    ('en', _('English')),
+    ('de', _('German')),
+]
+
+LOCALE_PATHS = [BASE_DIR / 'locale']
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -154,3 +163,19 @@ CACHES = {
 
 
 AUTH_USER_MODEL = 'users.User'
+
+# Allowed file extensions for avatars
+AVATAR_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
+
+# Allowed file extensions for property images
+PROPERTY_IMAGE_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+MAX_PROPERTY_IMAGES = 10 
+
+
+# CONTENT MODERATION (listings app)
+
+AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID', default='')
+AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY', default='')
+AWS_REGION_NAME = env.str('AWS_REGION_NAME', default='eu-central-1')
+
+OPENAI_API_KEY = env.str('OPENAI_API_KEY', default='')

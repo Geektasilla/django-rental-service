@@ -1,3 +1,16 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Message, Ticket
+
+
+class MessageInline(admin.TabularInline):
+    model = Message
+    extra = 0
+
+
+@admin.register(Ticket)
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ["subject", "user", "assigned_to", "status", "created_at"]
+    list_filter = ["status"]
+    search_fields = ["subject", "user__email"]
+    inlines = [MessageInline]

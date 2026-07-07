@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from common.models import ProfileStatusChoices
+
 
 class AgentProfile(models.Model):
     """Role-specific profile for real estate agents."""
@@ -17,17 +19,11 @@ class AgentProfile(models.Model):
     is_certified = models.BooleanField(_("certified status"), default=False)
     website = models.URLField(_("website"), max_length=200, null=True, blank=True)
     bio = models.TextField(_("bio / specialization"), null=True, blank=True)
-
-    class StatusChoices(models.TextChoices):
-        ACTIVE = "active", _("Active")
-        DISABLED = "disabled", _("Disabled by User")
-        BANNED = "banned", _("Banned by Admin")
-
     status = models.CharField(
         _("status"),
         max_length=20,
-        choices=StatusChoices.choices,
-        default=StatusChoices.ACTIVE,
+        choices=ProfileStatusChoices.choices,
+        default=ProfileStatusChoices.ACTIVE,
     )
 
     class Meta:

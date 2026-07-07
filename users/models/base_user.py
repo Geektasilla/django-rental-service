@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
+from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -8,6 +8,8 @@ phone_validator = RegexValidator(
     regex=r"^\+?[1-9]\d{7,14}$",
     message=_("Enter a valid phone number in international format, e.g. +491701234567."),
 )
+
+AVATAR_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp"]
 
 
 class UserManager(BaseUserManager):
@@ -82,6 +84,7 @@ class User(AbstractUser):
         upload_to="avatars/",
         blank=True,
         null=True,
+        validators=[FileExtensionValidator(allowed_extensions=AVATAR_ALLOWED_EXTENSIONS)],
     )
 
     is_owner = models.BooleanField(
@@ -93,6 +96,16 @@ class User(AbstractUser):
         _("agent status"),
         default=False,
         help_text=_("Grants access to real estate agent features."),
+    )
+    is_support = models.BooleanField(
+        _("support status"),
+        default=False,
+        help_text=_("Grants access to support ticket features. Settable only via admin, never via a public serializer."),
+    )
+    is_moderator = models.BooleanField(
+        _("moderator status"),
+        default=False,
+        help_text=_("Grants access to listing moderation features. Settable only via admin, never via a public serializer."),
     )
 
     objects = UserManager()

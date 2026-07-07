@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from common.models import ProfileStatusChoices
+
 
 class OwnerProfile(models.Model):
     """Role-specific profile for landlords (property owners)."""
@@ -57,16 +59,11 @@ class OwnerProfile(models.Model):
         null=True,
     )
 
-    class StatusChoices(models.TextChoices):
-        ACTIVE = "active", _("Active")
-        DISABLED = "disabled", _("Disabled by User")
-        BANNED = "banned", _("Banned by Admin")
-
     status = models.CharField(
         _("status"),
         max_length=20,
-        choices=StatusChoices.choices,
-        default=StatusChoices.ACTIVE,
+        choices=ProfileStatusChoices.choices,
+        default=ProfileStatusChoices.ACTIVE,
     )
 
     class Meta:

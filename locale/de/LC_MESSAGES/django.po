@@ -1,0 +1,771 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-08 21:28+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Viktoriia\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\analytics\apps.py:7
+msgid "Analytics"
+msgstr "Statistiken"
+
+#: .\analytics\models\property_view.py:23
+msgid "IP address"
+msgstr "IP-Adresse"
+
+#: .\analytics\models\property_view.py:24
+msgid "viewed at"
+msgstr "angesehen am"
+
+#: .\analytics\models\property_view.py:27
+msgid "property view"
+msgstr "Objektaufruf"
+
+#: .\analytics\models\property_view.py:28
+msgid "property views"
+msgstr "Objektaufrufe"
+
+#: .\analytics\models\search_history.py:16
+msgid "search query"
+msgstr "Suchanfrage"
+
+#: .\analytics\models\search_history.py:17 .\common\models\base.py:8
+#: .\listings\models\moderator.py:47 .\notifications\models\notification.py:16
+#: .\reviews\models\review.py:22 .\support\models\message.py:22
+#: .\support\models\ticket.py:34
+msgid "created at"
+msgstr "erstellt am"
+
+#: .\analytics\models\search_history.py:20
+msgid "search history entry"
+msgstr "Sucheintrag"
+
+#: .\analytics\models\search_history.py:21
+msgid "search history"
+msgstr "Suchverlauf"
+
+#: .\bookings\apps.py:7
+msgid "Bookings"
+msgstr "Buchungen"
+
+#: .\bookings\models\booking.py:25
+msgid "start date"
+msgstr "Startdatum"
+
+#: .\bookings\models\booking.py:26
+msgid "end date"
+msgstr "Enddatum"
+
+#: .\bookings\models\booking.py:28 .\support\models\ticket.py:29
+#: .\users\models\agent.py:23 .\users\models\owner.py:63
+#: .\users\models\tenant.py:23
+msgid "status"
+msgstr "Status"
+
+#: .\bookings\models\booking.py:32
+msgid ""
+"Set to BOOKED/CANCELLED only by the property's owner or agent approving or "
+"declining the request."
+msgstr ""
+"Wird nur vom Eigentümer oder Makler des Objekts auf GEBUCHT/STORNIERT "
+"gesetzt, wenn die Anfrage angenommen oder abgelehnt wird."
+
+#: .\bookings\models\booking.py:35
+msgid "price frozen"
+msgstr "Eingefrorener Preis"
+
+#: .\bookings\models\booking.py:40
+msgid ""
+"Copy of Property.price_per_day (DAILY) or Property.price_per_month "
+"(LONG_TERM) at booking creation time; later owner price changes don't affect"
+" this contract."
+msgstr ""
+"Kopie von Property.price_per_day (DAILY) oder Property.price_per_month "
+"(LONG_TERM) zum Zeitpunkt der Buchungserstellung; spätere Preisänderungen "
+"des Eigentümers wirken sich nicht auf diesen Vertrag aus."
+
+#: .\bookings\models\booking.py:46
+msgid "booking"
+msgstr "Buchung"
+
+#: .\bookings\models\booking.py:47
+msgid "bookings"
+msgstr "Buchungen"
+
+#: .\bookings\models\booking.py:75
+msgid "End date must be after the start date."
+msgstr "Das Enddatum muss nach dem Startdatum liegen."
+
+#: .\bookings\models\booking.py:87
+msgid "This property is already booked for the selected dates."
+msgstr "Dieses Objekt ist für die ausgewählten Daten bereits gebucht."
+
+#: .\bookings\models\status.py:8
+msgid "Pending owner approval"
+msgstr "Warten auf Zustimmung des Eigentümers"
+
+#: .\bookings\models\status.py:9
+msgid "Booked"
+msgstr "Gebucht"
+
+#: .\bookings\models\status.py:10
+msgid "Paid"
+msgstr "Bezahlt"
+
+#: .\bookings\models\status.py:11
+msgid "Cancelled"
+msgstr "Storniert"
+
+#: .\common\models\base.py:9
+msgid "updated at"
+msgstr "aktualisiert am"
+
+#: .\common\models\choices.py:8
+msgid "Active"
+msgstr "Aktiv"
+
+#: .\common\models\choices.py:9
+msgid "Disabled by User"
+msgstr "Vom Nutzer deaktiviert"
+
+#: .\common\models\choices.py:10
+msgid "Banned by Admin"
+msgstr "Vom Administrator gesperrt"
+
+#: .\config\settings.py:131
+msgid "English"
+msgstr "Englisch"
+
+#: .\config\settings.py:132
+msgid "German"
+msgstr "Deutsch"
+
+#: .\listings\apps.py:7
+msgid "Listings"
+msgstr "Anzeigen"
+
+#: .\listings\models\address.py:15
+msgid "street"
+msgstr "Straße"
+
+#: .\listings\models\address.py:16
+msgid "house number"
+msgstr "Hausnummer"
+
+#: .\listings\models\address.py:19
+msgid "address"
+msgstr "Adresse"
+
+#: .\listings\models\address.py:20
+msgid "addresses"
+msgstr "Adressen"
+
+#: .\listings\models\amenity.py:8 .\listings\models\category.py:8
+msgid "name"
+msgstr "Name"
+
+#: .\listings\models\amenity.py:11
+msgid "amenity"
+msgstr "Ausstattungsmerkmal"
+
+#: .\listings\models\amenity.py:12
+msgid "amenities"
+msgstr "Ausstattungsmerkmale"
+
+#: .\listings\models\category.py:11
+msgid "category"
+msgstr "Kategorie"
+
+#: .\listings\models\category.py:12
+msgid "categories"
+msgstr "Kategorien"
+
+#: .\listings\models\moderator.py:12
+msgid "Text (OpenAI Moderation API)"
+msgstr "Text (OpenAI Moderation API)"
+
+#: .\listings\models\moderator.py:13
+msgid "Image (AWS Rekognition)"
+msgstr "Bild (AWS Rekognition)"
+
+#: .\listings\models\moderator.py:14
+msgid "Manual review"
+msgstr "Manuelle Prüfung"
+
+#: .\listings\models\moderator.py:17
+msgid "Clean"
+msgstr "Unbedenklich"
+
+#: .\listings\models\moderator.py:18
+msgid "Flagged"
+msgstr "Markiert"
+
+#: .\listings\models\moderator.py:19
+msgid "Check failed"
+msgstr "Prüfung fehlgeschlagen"
+
+#: .\listings\models\moderator.py:26
+msgid "source"
+msgstr "Quelle"
+
+#: .\listings\models\moderator.py:27
+msgid "decision"
+msgstr "Entscheidung"
+
+#: .\listings\models\moderator.py:29
+msgid "reason"
+msgstr "Begründung"
+
+#: .\listings\models\moderator.py:31
+msgid "Human-readable summary of flagged categories."
+msgstr "Für Menschen lesbare Zusammenfassung der markierten Kategorien."
+
+#: .\listings\models\moderator.py:34
+msgid "raw response"
+msgstr "Rohantwort"
+
+#: .\listings\models\moderator.py:37
+msgid "Raw API response, kept for audit purposes."
+msgstr "Rohe API-Antwort, wird zu Prüfzwecken aufbewahrt."
+
+#: .\listings\models\moderator.py:45
+msgid "Set when a human moderator made or overrode the decision."
+msgstr ""
+"Wird gesetzt, wenn ein menschlicher Moderator die Entscheidung getroffen "
+"oder überschrieben hat."
+
+#: .\listings\models\moderator.py:50
+msgid "moderation log"
+msgstr "Moderationsprotokoll"
+
+#: .\listings\models\moderator.py:51
+msgid "moderation logs"
+msgstr "Moderationsprotokolle"
+
+#: .\listings\models\postal_code.py:8 .\listings\models\postal_code.py:17
+msgid "postal code"
+msgstr "Postleitzahl"
+
+#: .\listings\models\postal_code.py:9
+msgid "city"
+msgstr "Stadt"
+
+#: .\listings\models\postal_code.py:11
+msgid "state"
+msgstr "Bundesland"
+
+#: .\listings\models\postal_code.py:13
+msgid "German federal state (Bundesland), e.g. Berlin, Bayern."
+msgstr "Deutsches Bundesland, z. B. Berlin, Bayern."
+
+#: .\listings\models\postal_code.py:18
+msgid "postal codes"
+msgstr "Postleitzahlen"
+
+#: .\listings\models\property.py:19
+msgid "Daily"
+msgstr "Täglich"
+
+#: .\listings\models\property.py:20
+msgid "Long-term"
+msgstr "Langfristig"
+
+#: .\listings\models\property.py:23
+msgid "Pending review"
+msgstr "Prüfung ausstehend"
+
+#: .\listings\models\property.py:24
+msgid "Approved"
+msgstr "Genehmigt"
+
+#: .\listings\models\property.py:25
+msgid "Rejected"
+msgstr "Abgelehnt"
+
+#: .\listings\models\property.py:28
+msgid "As owner (own property)"
+msgstr "Als Eigentümer (eigenes Objekt)"
+
+#: .\listings\models\property.py:29
+msgid "As agent (on behalf of a client)"
+msgstr "Als Makler (im Auftrag eines Kunden)"
+
+#: .\listings\models\property.py:36
+msgid "title"
+msgstr "Titel"
+
+#: .\listings\models\property.py:37
+msgid "description"
+msgstr "Beschreibung"
+
+#: .\listings\models\property.py:49
+msgid "rent type"
+msgstr "Mietart"
+
+#: .\listings\models\property.py:54
+msgid "price per day (EUR)"
+msgstr "Preis pro Tag (EUR)"
+
+#: .\listings\models\property.py:60
+msgid ""
+"Required for DAILY listings. Price in EUR - this platform only serves the "
+"German market."
+msgstr ""
+"Erforderlich für tägliche Angebote. Preis in EUR - diese Plattform bedient "
+"nur den deutschen Markt."
+
+#: .\listings\models\property.py:63
+msgid "price per month (EUR)"
+msgstr "Preis pro Monat (EUR)"
+
+#: .\listings\models\property.py:70
+msgid ""
+"Required for LONG_TERM listings (German long-term rent is always quoted "
+"monthly, e.g. Kaltmiete). Price in EUR."
+msgstr ""
+"Erforderlich für langfristige Angebote (die deutsche Langzeitmiete wird "
+"immer monatlich angegeben, z. B. Kaltmiete). Preis in EUR."
+
+#: .\listings\models\property.py:75
+msgid "rooms count"
+msgstr "Zimmeranzahl"
+
+#: .\listings\models\property.py:79
+msgid "is active"
+msgstr "Ist aktiv"
+
+#: .\listings\models\property.py:81
+msgid "Toggled by the owner to show/hide the listing from search results."
+msgstr ""
+"Wird vom Eigentümer umgeschaltet, um das Angebot in der Suche ein- oder "
+"auszublenden."
+
+#: .\listings\models\property.py:85
+msgid "moderation status"
+msgstr "Moderationsstatus"
+
+#: .\listings\models\property.py:89
+msgid "Result of automated + human review of this listing's text and photos."
+msgstr ""
+"Ergebnis der automatisierten und menschlichen Prüfung von Text und Fotos "
+"dieses Angebots."
+
+#: .\listings\models\property.py:93
+msgid "listed as"
+msgstr "Angeboten als"
+
+#: .\listings\models\property.py:97
+msgid ""
+"Whether the owner is listing their own property, or an agent acting on a "
+"client's behalf."
+msgstr ""
+"Ob der Eigentümer sein eigenes Objekt anbietet oder ein Makler im Auftrag "
+"eines Kunden handelt."
+
+#: .\listings\models\property.py:100
+msgid "power of attorney document"
+msgstr "Vollmachtsdokument"
+
+#: .\listings\models\property.py:104
+msgid ""
+"Required when listed_as=AGENT; proves authorization to list this specific "
+"property."
+msgstr ""
+"Erforderlich, wenn listed_as=AGENT; belegt die Berechtigung, genau dieses "
+"Objekt anzubieten."
+
+#: .\listings\models\property.py:108
+msgid "property"
+msgstr "Immobilie"
+
+#: .\listings\models\property.py:109
+msgid "properties"
+msgstr "Immobilien"
+
+#: .\listings\models\property.py:147
+msgid "price_per_day is required for DAILY listings."
+msgstr "price_per_day ist für tägliche Angebote erforderlich."
+
+#: .\listings\models\property.py:149
+msgid "price_per_month is required for LONG_TERM listings."
+msgstr "price_per_month ist für langfristige Angebote erforderlich."
+
+#: .\listings\models\property.py:157
+msgid "A power of attorney document is required when listing as an agent."
+msgstr "Beim Anbieten als Makler ist ein Vollmachtsdokument erforderlich."
+
+#: .\listings\models\property.py:162
+msgid "Only a certified agent may list a property on a client's behalf."
+msgstr ""
+"Nur ein zertifizierter Makler darf ein Objekt im Auftrag eines Kunden "
+"anbieten."
+
+#: .\listings\models\property.py:167
+msgid "Only a user with owner status may list a property as themselves."
+msgstr ""
+"Nur ein Nutzer mit Eigentümerstatus darf ein Objekt in eigenem Namen "
+"anbieten."
+
+#: .\listings\models\property_image.py:19
+msgid "image"
+msgstr "Bild"
+
+#: .\listings\models\property_image.py:25
+msgid "property image"
+msgstr "Objektbild"
+
+#: .\listings\models\property_image.py:26
+msgid "property images"
+msgstr "Objektbilder"
+
+#: .\listings\models\property_image.py:48
+#, python-format
+msgid "A property cannot have more than %(max)d images."
+msgstr "Eine Immobilie darf nicht mehr als %(max)d Bilder haben."
+
+#: .\listings\models\property_location.py:22
+msgid "apartment number"
+msgstr "Wohnungsnummer"
+
+#: .\listings\models\property_location.py:24
+msgid "floor info"
+msgstr "Stockwerk"
+
+#: .\listings\models\property_location.py:27
+msgid "e.g. '3. Stock Rechts'."
+msgstr "z. B. '3. Stock Rechts'."
+
+#: .\listings\models\property_location.py:31
+msgid "property location"
+msgstr "Objektstandort"
+
+#: .\listings\models\property_location.py:32
+msgid "property locations"
+msgstr "Objektstandorte"
+
+#: .\notifications\apps.py:7
+msgid "Notifications"
+msgstr "Benachrichtigungen"
+
+#: .\notifications\models\notification.py:14 .\support\models\message.py:25
+msgid "message"
+msgstr "Nachricht"
+
+#: .\notifications\models\notification.py:15
+msgid "is read"
+msgstr "Gelesen"
+
+#: .\notifications\models\notification.py:19
+msgid "notification"
+msgstr "Benachrichtigung"
+
+#: .\notifications\models\notification.py:20
+msgid "notifications"
+msgstr "Benachrichtigungen"
+
+#: .\reviews\apps.py:7
+msgid "Reviews"
+msgstr "Rezensionen"
+
+#: .\reviews\models\review.py:18
+msgid "rating"
+msgstr "Bewertung"
+
+#: .\reviews\models\review.py:21
+msgid "comment"
+msgstr "Kommentar"
+
+#: .\reviews\models\review.py:25
+msgid "review"
+msgstr "Rezension"
+
+#: .\reviews\models\review.py:26
+msgid "reviews"
+msgstr "Rezensionen"
+
+#: .\support\apps.py:7
+msgid "Support"
+msgstr "Support"
+
+#: .\support\models\message.py:21
+msgid "body"
+msgstr "Nachrichtentext"
+
+#: .\support\models\message.py:26
+msgid "messages"
+msgstr "Nachrichten"
+
+#: .\support\models\ticket.py:10
+msgid "Open"
+msgstr "Offen"
+
+#: .\support\models\ticket.py:11
+msgid "In progress"
+msgstr "In Bearbeitung"
+
+#: .\support\models\ticket.py:12
+msgid "Closed"
+msgstr "Geschlossen"
+
+#: .\support\models\ticket.py:25
+msgid "Support agent handling this ticket."
+msgstr "Support-Mitarbeiter, der dieses Ticket bearbeitet."
+
+#: .\support\models\ticket.py:27
+msgid "subject"
+msgstr "Betreff"
+
+#: .\support\models\ticket.py:37
+msgid "ticket"
+msgstr "Ticket"
+
+#: .\support\models\ticket.py:38
+msgid "tickets"
+msgstr "Tickets"
+
+#: .\users\admin.py:18
+msgid "Personal info"
+msgstr "Persönliche Daten"
+
+#: .\users\admin.py:19
+msgid "Roles"
+msgstr "Rollen"
+
+#: .\users\admin.py:20
+msgid "Permissions"
+msgstr "Berechtigungen"
+
+#: .\users\admin.py:21
+msgid "Important dates"
+msgstr "Wichtige Daten"
+
+#: .\users\apps.py:7
+msgid "Users"
+msgstr "Nutzer"
+
+#: .\users\models\agent.py:17 .\users\models\owner.py:34
+msgid "company name"
+msgstr "Firmenname"
+
+#: .\users\models\agent.py:18
+msgid "license number"
+msgstr "Lizenznummer"
+
+#: .\users\models\agent.py:19
+msgid "certified status"
+msgstr "Zertifizierungsstatus"
+
+#: .\users\models\agent.py:20
+msgid "website"
+msgstr "Webseite"
+
+#: .\users\models\agent.py:21
+msgid "bio / specialization"
+msgstr "Profil / Spezialisierung"
+
+#: .\users\models\agent.py:30
+msgid "agent profile"
+msgstr "Maklerprofil"
+
+#: .\users\models\agent.py:31
+msgid "agent profiles"
+msgstr "Maklerprofile"
+
+#: .\users\models\base_user.py:9
+msgid ""
+"Enter a valid phone number in international format, e.g. +491701234567."
+msgstr ""
+"Bitte eine gültige Telefonnummer im internationalen Format eingeben, z. B. "
+"+491701234567."
+
+#: .\users\models\base_user.py:30
+msgid "The email address must be set."
+msgstr "Die E-Mail-Adresse muss angegeben werden."
+
+#: .\users\models\base_user.py:64
+msgid "Superuser must have is_staff=True."
+msgstr "Ein Superuser muss is_staff=True haben."
+
+#: .\users\models\base_user.py:66
+msgid "Superuser must have is_superuser=True."
+msgstr "Ein Superuser muss is_superuser=True haben."
+
+#: .\users\models\base_user.py:75
+msgid "email address"
+msgstr "E-Mail-Adresse"
+
+#: .\users\models\base_user.py:77
+msgid "phone number"
+msgstr "Telefonnummer"
+
+#: .\users\models\base_user.py:83
+msgid "avatar"
+msgstr "Profilbild"
+
+#: .\users\models\base_user.py:91
+msgid "owner status"
+msgstr "Eigentümerstatus"
+
+#: .\users\models\base_user.py:93
+msgid "Grants access to landlord (property owner) features."
+msgstr "Gewährt Zugriff auf Vermieter-Funktionen (Immobilieneigentümer)."
+
+#: .\users\models\base_user.py:96
+msgid "agent status"
+msgstr "Maklerstatus"
+
+#: .\users\models\base_user.py:98
+msgid "Grants access to real estate agent features."
+msgstr "Gewährt Zugriff auf Makler-Funktionen."
+
+#: .\users\models\base_user.py:101
+msgid "support status"
+msgstr "Support-Status"
+
+#: .\users\models\base_user.py:103
+msgid ""
+"Grants access to support ticket features. Settable only via admin, never via"
+" a public serializer."
+msgstr ""
+"Gewährt Zugriff auf Support-Ticket-Funktionen. Nur über das Admin-Panel "
+"einstellbar, niemals über einen öffentlichen Serializer."
+
+#: .\users\models\base_user.py:106
+msgid "moderator status"
+msgstr "Moderatorstatus"
+
+#: .\users\models\base_user.py:108
+msgid ""
+"Grants access to listing moderation features. Settable only via admin, never"
+" via a public serializer."
+msgstr ""
+"Gewährt Zugriff auf Funktionen zur Angebotsmoderation. Nur über das Admin-"
+"Panel einstellbar, niemals über einen öffentlichen Serializer."
+
+#: .\users\models\base_user.py:120
+msgid "Male"
+msgstr "Männlich"
+
+#: .\users\models\base_user.py:121
+msgid "Female"
+msgstr "Weiblich"
+
+#: .\users\models\base_user.py:122
+msgid "Other / Non-binary"
+msgstr "Divers / Nicht-binär"
+
+#: .\users\models\base_user.py:123
+msgid "Prefer not to say"
+msgstr "Keine Angabe"
+
+#: .\users\models\base_user.py:126
+msgid "gender"
+msgstr "Geschlecht"
+
+#: .\users\models\base_user.py:133
+msgid "user"
+msgstr "Nutzer"
+
+#: .\users\models\base_user.py:134
+msgid "users"
+msgstr "Nutzer"
+
+#: .\users\models\owner.py:18
+msgid "tax ID / INN"
+msgstr "Steuernummer / INN"
+
+#: .\users\models\owner.py:20
+msgid "Used for tax reporting (Germany) / legal entities."
+msgstr ""
+"Wird für die Steuererklärung (Deutschland) / juristische Personen verwendet."
+
+#: .\users\models\owner.py:24
+msgid "bio"
+msgstr "Profil"
+
+#: .\users\models\owner.py:26
+msgid "Public description shown on the owner's listing page."
+msgstr ""
+"Öffentliche Beschreibung, die auf der Angebotsseite des Eigentümers "
+"angezeigt wird."
+
+#: .\users\models\owner.py:30
+msgid "is company"
+msgstr "Ist Unternehmen"
+
+#: .\users\models\owner.py:32
+msgid "Whether the owner is a legal entity rather than a private individual."
+msgstr ""
+"Ob der Eigentümer eine juristische Person statt einer Privatperson ist."
+
+#: .\users\models\owner.py:36
+msgid "registration number"
+msgstr "Handelsregisternummer"
+
+#: .\users\models\owner.py:39
+msgid "Commercial register number (Handelsregisternummer), if applicable."
+msgstr "Handelsregisternummer, falls zutreffend."
+
+#: .\users\models\owner.py:43
+msgid "languages"
+msgstr "Sprachen"
+
+#: .\users\models\owner.py:46
+msgid ""
+"Comma-separated list of languages spoken by the owner, e.g. German, English."
+msgstr ""
+"Durch Komma getrennte Liste der vom Eigentümer gesprochenen Sprachen, z. B. "
+"Deutsch, Englisch."
+
+#: .\users\models\owner.py:50
+msgid "verified"
+msgstr "Verifiziert"
+
+#: .\users\models\owner.py:52
+msgid "Whether a moderator has verified the owner's documents."
+msgstr "Ob ein Moderator die Dokumente des Eigentümers verifiziert hat."
+
+#: .\users\models\owner.py:54
+msgid "verified at"
+msgstr "Verifiziert am"
+
+#: .\users\models\owner.py:56
+msgid "verification document"
+msgstr "Verifizierungsdokument"
+
+#: .\users\models\owner.py:70
+msgid "owner profile"
+msgstr "Eigentümerprofil"
+
+#: .\users\models\owner.py:71
+msgid "owner profiles"
+msgstr "Eigentümerprofile"
+
+#: .\users\models\tenant.py:18
+msgid "passport data"
+msgstr "Ausweisdaten"
+
+#: .\users\models\tenant.py:20
+msgid "Sensitive identity document data; store encrypted or masked."
+msgstr "Sensible Ausweisdaten; verschlüsselt oder maskiert speichern."
+
+#: .\users\models\tenant.py:30
+msgid "tenant profile"
+msgstr "Mieterprofil"
+
+#: .\users\models\tenant.py:31
+msgid "tenant profiles"
+msgstr "Mieterprofile"

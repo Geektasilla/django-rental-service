@@ -37,8 +37,8 @@ class Booking(TimeStampedModel):
         decimal_places=2,
         editable=False,
         help_text=_(
-            "Copy of Property.price_per_day at booking creation time; "
-            "later owner price changes don't affect this contract."
+            "Copy of Property.price_per_day (DAILY) or Property.price_per_month (LONG_TERM) at "
+            "booking creation time; later owner price changes don't affect this contract."
         ),
     )
 
@@ -46,6 +46,12 @@ class Booking(TimeStampedModel):
         verbose_name = _("booking")
         verbose_name_plural = _("bookings")
         ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_date__gt=models.F("start_date")),
+                name="booking_end_date_after_start_date",
+            ),
+        ]
 
     def __str__(self) -> str:
         """
@@ -55,16 +61,18 @@ class Booking(TimeStampedModel):
 
     def clean(self) -> None:
         """
-        Enforce the DAILY-rental calendar rule: no two BOOKED/PAID bookings may overlap
-        on the same property. PENDING requests don't block dates yet - multiple tenants
-        may request the same range, and the owner picks one when approving it to BOOKED.
-        LONG_TERM bookings rely on Property.is_active instead.
+        Enforce that end_date falls after start_date, then the DAILY-rental calendar rule:
+        no two BOOKED/PAID bookings may overlap on the same property. PENDING requests don't
+        block dates yet - multiple tenants may request the same range, and the owner picks one
+        when approving it to BOOKED. LONG_TERM bookings rely on Property.is_active instead.
 
-        :raises ValidationError: if the requested date range overlaps an existing
-            BOOKED/PAID booking for the same property.
+        :raises ValidationError: if end_date isn't after start_date, or if the requested date
+            range overlaps an existing BOOKED/PAID booking for the same property.
         """
         if self.property_id is None or self.start_date is None or self.end_date is None:
             return
+        if self.end_date <= self.start_date:
+            raise ValidationError(_("End date must be after the start date."))
         if self.property.rent_type != Property.RentTypeChoices.DAILY:
             return
 
@@ -80,8 +88,12 @@ class Booking(TimeStampedModel):
             )
 
     def save(self, *args, **kwargs) -> None:
-        """Freeze price_per_day from the linked Property on creation, validate, then delegate to the parent save."""
+        """Freeze the rent_type-appropriate price from the linked Property on creation, then validate."""
         if self._state.adding:
-            self.price_frozen = self.property.price_per_day
+            self.price_frozen = (
+                self.property.price_per_day
+                if self.property.rent_type == Property.RentTypeChoices.DAILY
+                else self.property.price_per_month
+            )
         self.full_clean()
         super().save(*args, **kwargs)

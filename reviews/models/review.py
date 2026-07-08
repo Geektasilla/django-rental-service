@@ -25,6 +25,12 @@ class Review(models.Model):
         verbose_name = _("review")
         verbose_name_plural = _("reviews")
         ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(rating__gte=1) & models.Q(rating__lte=5),
+                name="review_rating_range",
+            ),
+        ]
 
     def __str__(self) -> str:
         """

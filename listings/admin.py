@@ -48,8 +48,11 @@ class PropertyImageInline(admin.TabularInline):
 
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ["title", "owner", "category", "rent_type", "price_per_day", "is_active", "moderation_status"]
-    list_filter = ["rent_type", "is_active", "moderation_status", "category"]
+    list_display = [
+        "title", "owner", "category", "rent_type", "price_per_day", "price_per_month",
+        "is_active", "moderation_status", "listed_as", "created_at",
+    ]
+    list_filter = ["rent_type", "is_active", "moderation_status", "category", "listed_as", "created_at"]
     search_fields = ["title", "description", "owner__email"]
     inlines = [PropertyLocationInline, PropertyImageInline]
 

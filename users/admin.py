@@ -23,7 +23,7 @@ class UserAdmin(DjangoUserAdmin):
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
-            "fields": ("email", "phone", "password1", "password2"),
+            "fields": ("email", "first_name", "last_name", "phone", "password", "password2"), # Добавлены first_name и last_name
         }),
     )
 

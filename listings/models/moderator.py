@@ -50,6 +50,18 @@ class ModerationLog(models.Model):
         verbose_name = _("moderation log")
         verbose_name_plural = _("moderation logs")
         ordering = ["-created_at"]
+        constraints = [
+            # Hardcoded, not SourceChoices/DecisionChoices.values: nested TextChoices isn't
+            # visible from a sibling nested Meta class.
+            models.CheckConstraint(
+                condition=models.Q(source__in=["text", "image", "manual"]),
+                name="moderationlog_source_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(decision__in=["clean", "flagged", "error"]),
+                name="moderationlog_decision_valid",
+            ),
+        ]
 
     def __str__(self) -> str:
         """

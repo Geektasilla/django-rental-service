@@ -121,6 +121,40 @@ class Property(TimeStampedModel):
                 condition=models.Q(rooms_count__gte=1) & models.Q(rooms_count__lte=20),
                 name="property_rooms_count_range",
             ),
+            # Values hardcoded, not RentTypeChoices.values: a nested TextChoices class isn't
+            # visible from a sibling nested Meta class (Python class-body scoping rules).
+            models.CheckConstraint(
+                condition=models.Q(rent_type__in=["daily", "long_term"]),
+                name="property_rent_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(moderation_status__in=["pending", "approved", "rejected"]),
+                name="property_moderation_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(listed_as__in=["owner", "agent"]),
+                name="property_listed_as_valid",
+            ),
+            # Same-row rules from Property.clean(), now also enforced at the DB level so
+            # bulk_create()/bulk_update()/.update() can't bypass them.
+            models.CheckConstraint(
+                condition=(
+                    models.Q(rent_type="daily", price_per_day__isnull=False)
+                    | models.Q(rent_type="long_term", price_per_month__isnull=False)
+                ),
+                name="property_price_required_for_rent_type",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(listed_as="owner")
+                    | (
+                        models.Q(listed_as="agent")
+                        & models.Q(power_of_attorney_document__isnull=False)
+                        & ~models.Q(power_of_attorney_document="")
+                    )
+                ),
+                name="property_poa_required_for_agent",
+            ),
         ]
 
     def __str__(self) -> str:

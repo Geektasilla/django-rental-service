@@ -1,5 +1,9 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
+
+from notifications.models import Notification
+from users.models import User
 
 from .models import ModerationLog, Property, PropertyImage
 from .services.moderation import moderate_image, moderate_text
@@ -19,14 +23,38 @@ def _decision_for(result: dict) -> str:
     return ModerationLog.DecisionChoices.CLEAN
 
 
+def _notify_moderators_of_pending_listing(instance: Property) -> None:
+    """
+    Create an in-app Notification for every active moderator when a new listing needs review.
+
+    In-app only (Notification row, no email/push) - a stopgap until Celery+SMTP exist in the
+    project (see tools/issues.md). Moderators must check GET /api/v1/notifications/ themselves;
+    there is no external ping.
+
+    :param instance: the newly created Property, still PENDING after the automated text check.
+    """
+    moderators = User.objects.filter(is_moderator=True, is_active=True)
+    Notification.objects.bulk_create(
+        Notification(
+            user=moderator,
+            message=str(_("New listing pending review: %(title)s") % {"title": instance.title}),
+        )
+        for moderator in moderators
+    )
+
+
 @receiver(post_save, sender=Property)
-def moderate_property_text(sender, instance: Property, **kwargs) -> None:
+def moderate_property_text(sender, instance: Property, created: bool, **kwargs) -> None:
     """
     Check a Property's title/description on every save and auto-reject it if flagged.
     Never auto-approves; a clean result just leaves the existing moderation_status alone.
 
+    On creation, if the listing is still PENDING after this check, notify moderators - not on
+    later edits, to avoid re-notifying on every unrelated update to an already-reviewed listing.
+
     :param sender: the Property model class.
     :param instance: the saved Property instance.
+    :param created: True only for the initial insert.
     """
     result = moderate_text(f"{instance.title}\n{instance.description}")
     ModerationLog.objects.create(
@@ -40,6 +68,8 @@ def moderate_property_text(sender, instance: Property, **kwargs) -> None:
         Property.objects.filter(pk=instance.pk).update(
             moderation_status=Property.ModerationStatusChoices.REJECTED,
         )
+    elif created and instance.moderation_status == Property.ModerationStatusChoices.PENDING:
+        _notify_moderators_of_pending_listing(instance)
 
 
 @receiver(post_save, sender=PropertyImage)

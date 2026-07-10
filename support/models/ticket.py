@@ -37,6 +37,13 @@ class Ticket(models.Model):
         verbose_name = _("ticket")
         verbose_name_plural = _("tickets")
         ordering = ["-created_at"]
+        constraints = [
+            # Hardcoded, not StatusChoices.values: nested TextChoices isn't visible from Meta.
+            models.CheckConstraint(
+                condition=models.Q(status__in=["open", "in_progress", "closed"]),
+                name="ticket_status_valid",
+            ),
+        ]
 
     def __str__(self) -> str:
         """

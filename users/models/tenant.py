@@ -29,6 +29,12 @@ class TenantProfile(models.Model):
     class Meta:
         verbose_name = _("tenant profile")
         verbose_name_plural = _("tenant profiles")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=ProfileStatusChoices.values),
+                name="tenant_profile_status_valid",
+            ),
+        ]
 
     def __str__(self) -> str:
         """

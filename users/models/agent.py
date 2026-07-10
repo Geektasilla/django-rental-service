@@ -29,6 +29,12 @@ class AgentProfile(models.Model):
     class Meta:
         verbose_name = _("agent profile")
         verbose_name_plural = _("agent profiles")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=ProfileStatusChoices.values),
+                name="agent_profile_status_valid",
+            ),
+        ]
 
     def __str__(self) -> str:
         """

@@ -69,6 +69,12 @@ class OwnerProfile(models.Model):
     class Meta:
         verbose_name = _("owner profile")
         verbose_name_plural = _("owner profiles")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=ProfileStatusChoices.values),
+                name="owner_profile_status_valid",
+            ),
+        ]
 
     def __str__(self) -> str:
         """

@@ -2,7 +2,6 @@ import random
 import uuid
 from datetime import timedelta
 from decimal import Decimal
-from io import BytesIO
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -10,7 +9,6 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 from faker import Faker
-from PIL import Image
 
 from analytics.models import PropertyView, SearchHistory
 from bookings.models import Booking, BookingStatusChoices
@@ -27,15 +25,15 @@ from listings.models import (
 from reviews.models import Review
 from users.models import AgentProfile, OwnerProfile, TenantProfile, User
 
-SEED_PASSWORD = "TestPass123!"
-SEED_EMAIL_DOMAIN = "example.com"
-USER_COUNT = 50
-PROPERTY_COUNT = 80
+USER_COUNT = 120
+PROPERTY_COUNT = 100
+CERTIFIED_AGENT_LANDLORD_WEIGHT = 6
+PRIVATE_OWNER_LANDLORD_WEIGHT = 1
 SEARCH_HISTORY_COUNT = 200
-# Safety valve for the retry-until-target while loops: a handful of retries covers a rare
-# random collision, but if every attempt keeps failing (a real bug, not bad luck), stop
-# instead of looping forever.
 MAX_ATTEMPTS_PER_TARGET = 10
+MAX_PAST_BOOKING_DAYS = 365
+
+PROPERTY_PHOTOS_DIR = settings.MEDIA_ROOT / "property_photos"
 
 CATEGORY_NAMES = ["Apartment", "House", "Studio", "Room"]
 AMENITY_NAMES = [
@@ -43,7 +41,6 @@ AMENITY_NAMES = [
     "Elevator", "Pet Friendly", "Air Conditioning",
 ]
 
-# Real German postal codes, spread across several cities/states.
 GERMAN_POSTAL_CODES = [
     ("10115", "Berlin", "Berlin"),
     ("10117", "Berlin", "Berlin"),
@@ -68,6 +65,119 @@ SEARCH_KEYWORDS = [
     "long term rental Stuttgart", "studio near center", "parking included",
 ]
 
+TITLE_ADJECTIVE_STEMS = [
+    "Gemütlich", "Hell", "Modern", "Zentral", "Ruhig",
+    "Charmant", "Stilvoll", "Sonnig", "Geräumig", "Renoviert",
+]
+CATEGORY_NOUNS_DE = {
+    "Apartment": "Wohnung",
+    "House": "Haus",
+    "Studio": "Studio-Wohnung",
+    "Room": "Zimmer",
+}
+NEUTER_NOUNS_DE = {"Haus", "Zimmer"}
+
+DESCRIPTION_SENTENCES_GENERAL = [
+    "Die Wohnung liegt zentral und ist gut an öffentliche Verkehrsmittel angebunden.",
+    "In der Nähe befinden sich Supermärkte, Restaurants und Parks.",
+    "Die Räume sind hell und modern eingerichtet.",
+    "Haustiere sind nach Absprache willkommen.",
+    "Ein Balkon und ausreichend Stauraum runden das Angebot ab.",
+    "Die Küche ist voll ausgestattet und einladend.",
+]
+DESCRIPTION_SENTENCES_DAILY = [
+    "Perfekt für einen Kurzurlaub oder eine Geschäftsreise.",
+    "Kurzfristige Buchungen sind jederzeit möglich.",
+]
+DESCRIPTION_SENTENCES_LONG_TERM = [
+    "Langfristige Miete ist ab sofort möglich.",
+    "Ideal für alle, die auf der Suche nach einem dauerhaften Zuhause sind.",
+]
+
+REVIEW_COMMENTS_POSITIVE = [
+    "Ein toller Aufenthalt, alles war sauber und wie beschrieben.",
+    "Der Vermieter war sehr freundlich und hat schnell geantwortet.",
+    "Wir kommen auf jeden Fall wieder, absolute Empfehlung!",
+    "Die Lage war perfekt und die Wohnung genau wie auf den Fotos.",
+]
+REVIEW_COMMENTS_NEUTRAL = [
+    "Insgesamt in Ordnung, ein paar Kleinigkeiten könnten verbessert werden.",
+    "Die Wohnung war okay, aber nicht ganz so groß wie erwartet.",
+    "Guter Aufenthalt, die Kommunikation hätte aber schneller sein können.",
+]
+REVIEW_COMMENTS_NEGATIVE = [
+    "Leider nicht ganz wie beschrieben, wir waren etwas enttäuscht.",
+    "Die Wohnung war bei unserer Ankunft nicht besonders sauber.",
+    "Der Kontakt zum Vermieter war leider schwierig.",
+]
+
+OWNER_BIO_SENTENCES = [
+    "Vermietet seit mehreren Jahren zuverlässig Wohnungen und Häuser in der Region.",
+    "Legt großen Wert auf eine gepflegte Immobilie und einen freundlichen Kontakt zu den Mietern.",
+    "Bietet flexible Besichtigungstermine und eine schnelle, unkomplizierte Kommunikation.",
+    "Achtet auf eine faire und transparente Vermietung.",
+]
+AGENT_BIO_SENTENCES = [
+    "Spezialisiert auf die Vermittlung von Wohnungen und Häusern im Stadtgebiet.",
+    "Verfügt über mehrjährige Erfahrung in der Immobilienvermittlung.",
+    "Begleitet Mieter und Vermieter kompetent durch den gesamten Vermietungsprozess.",
+    "Bietet eine persönliche Beratung und schnelle Terminvereinbarung.",
+]
+
+
+def build_property_title(category_name: str, rooms_count: int, city: str) -> str:
+    """
+    :param category_name: Category.name of the listing (e.g. "Apartment", "Room").
+    :param rooms_count: number of rooms.
+    :param city: the listing's city (PostalCode.city).
+    :return: a realistic German listing title, e.g. "Gemütliche 3-Zimmer-Wohnung in Berlin".
+    """
+    noun = CATEGORY_NOUNS_DE.get(category_name, "Immobilie")
+    stem = random.choice(TITLE_ADJECTIVE_STEMS)
+    adjective = f"{stem}es" if noun in NEUTER_NOUNS_DE else f"{stem}e"
+    if noun == "Zimmer":
+        return f"{adjective} {noun} in {city}"
+    return f"{adjective} {rooms_count}-Zimmer-{noun} in {city}"
+
+
+def build_property_description(rent_type: str, rooms_count: int, city: str) -> str:
+    """
+    :param rent_type: Property.RentTypeChoices value ("daily" or "long_term").
+    :param rooms_count: number of rooms.
+    :param city: the listing's city (PostalCode.city).
+    :return: a short, grammatically correct German description paragraph.
+    """
+    intro = f"Diese Immobilie bietet {rooms_count} Zimmer in {city}."
+    rent_pool = DESCRIPTION_SENTENCES_DAILY if rent_type == Property.RentTypeChoices.DAILY else DESCRIPTION_SENTENCES_LONG_TERM
+    sentences = random.sample(DESCRIPTION_SENTENCES_GENERAL, k=random.randint(2, 3))
+    sentences.append(random.choice(rent_pool))
+    random.shuffle(sentences)
+    return " ".join([intro, *sentences])
+
+
+def build_review_comment(rating: int) -> str:
+    """
+    :param rating: the review's star rating (1-5).
+    :return: a realistic German comment whose tone matches the rating.
+    """
+    if rating >= 4:
+        pool = REVIEW_COMMENTS_POSITIVE
+    elif rating == 3:
+        pool = REVIEW_COMMENTS_NEUTRAL
+    else:
+        pool = REVIEW_COMMENTS_NEGATIVE
+    return random.choice(pool)
+
+
+def build_owner_bio() -> str:
+    """:return: a short, grammatically correct German bio for a private landlord."""
+    return " ".join(random.sample(OWNER_BIO_SENTENCES, k=random.randint(1, 2)))
+
+
+def build_agent_bio() -> str:
+    """:return: a short, grammatically correct German bio for a real estate agent."""
+    return " ".join(random.sample(AGENT_BIO_SENTENCES, k=random.randint(1, 2)))
+
 
 class Command(BaseCommand):
     """
@@ -75,7 +185,7 @@ class Command(BaseCommand):
 
     Safe to re-run after a failure: users and properties are checkpointed (each is created
     in its own small transaction, so a crash only loses the one record being written, not
-    prior progress), and re-running tops up up to USER_COUNT/PROPERTY_COUNT instead of
+    prior progress), and re-running tops up  to USER_COUNT/PROPERTY_COUNT instead of
     starting over or duplicating what's already there.
     """
 
@@ -126,7 +236,7 @@ class Command(BaseCommand):
 
         :return: (all_users, landlords - is_owner or is_agent, tenants - has a TenantProfile).
         """
-        users: list[User] = list(User.objects.filter(email__endswith=f"@{SEED_EMAIL_DOMAIN}"))
+        users: list[User] = list(User.objects.filter(email__endswith=f"@{settings.SEED_EMAIL_DOMAIN}"))
         tenant_user_ids = set(
             TenantProfile.objects.filter(user__in=users).values_list("user_id", flat=True)
         )
@@ -146,8 +256,8 @@ class Command(BaseCommand):
 
             with transaction.atomic():
                 user = User.objects.create_user(
-                    email=f"{uuid.uuid4().hex[:8]}@{SEED_EMAIL_DOMAIN}",
-                    password=SEED_PASSWORD,
+                    email=f"{uuid.uuid4().hex[:8]}@{settings.SEED_EMAIL_DOMAIN}",
+                    password=settings.SEED_PASSWORD,
                     phone=f"+49{random.randint(100_000_000, 999_999_999)}",
                     first_name=fake.first_name(),
                     last_name=fake.last_name(),
@@ -159,7 +269,7 @@ class Command(BaseCommand):
                     OwnerProfile.objects.create(
                         user=user,
                         tax_id=fake.numerify("DE#########"),
-                        bio=fake.text(max_nb_chars=200),
+                        bio=build_owner_bio(),
                         is_company=random.random() < 0.3,
                         company_name=fake.company() if random.random() < 0.3 else "",
                         languages="German, English",
@@ -172,7 +282,7 @@ class Command(BaseCommand):
                         company_name=fake.company(),
                         license_number=fake.numerify("LIC-######"),
                         is_certified=is_certified_agent,
-                        bio=fake.text(max_nb_chars=200),
+                        bio=build_agent_bio(),
                     )
                 if is_tenant:
                     TenantProfile.objects.create(user=user, passport_data=fake.numerify("P#########"))
@@ -204,11 +314,21 @@ class Command(BaseCommand):
     ) -> list[Property]:
         """Top up existing seed properties to PROPERTY_COUNT (same checkpointing idea as users)."""
         properties: list[Property] = list(
-            Property.objects.filter(owner__email__endswith=f"@{SEED_EMAIL_DOMAIN}")
+            Property.objects.filter(owner__email__endswith=f"@{settings.SEED_EMAIL_DOMAIN}")
         )
+        self._property_photo_pool = self._load_property_photo_pool()
+
+        def _is_certified_agent(user: User) -> bool:
+            agent_profile = getattr(user, "agent_profile", None)
+            return bool(agent_profile and agent_profile.is_certified)
+
+        landlord_weights = [
+            CERTIFIED_AGENT_LANDLORD_WEIGHT if _is_certified_agent(u) else PRIVATE_OWNER_LANDLORD_WEIGHT
+            for u in landlords
+        ]
 
         def create_one_property() -> Property:
-            owner = random.choice(landlords)
+            owner = random.choices(landlords, weights=landlord_weights, k=1)[0]
             can_list_as_owner = owner.is_owner
             agent_profile = getattr(owner, "agent_profile", None)
             can_list_as_agent = bool(agent_profile and agent_profile.is_certified)
@@ -228,6 +348,8 @@ class Command(BaseCommand):
 
             rent_type = random.choice(Property.RentTypeChoices.values)
             is_daily = rent_type == Property.RentTypeChoices.DAILY
+            category = random.choice(categories)
+            rooms_count = random.randint(1, 6)
 
             with transaction.atomic():
                 postal_code = random.choice(postal_codes)
@@ -239,23 +361,31 @@ class Command(BaseCommand):
 
                 property_ = Property.objects.create(
                     owner=owner,
-                    title=fake.sentence(nb_words=5).rstrip("."),
-                    description=fake.paragraph(nb_sentences=5),
-                    category=random.choice(categories),
+                    title=build_property_title(category.name, rooms_count, postal_code.city),
+                    description=build_property_description(rent_type, rooms_count, postal_code.city),
+                    category=category,
                     rent_type=rent_type,
                     price_per_day=Decimal(random.randrange(20, 300)) if is_daily else None,
                     price_per_month=None if is_daily else Decimal(random.randrange(400, 3000)),
-                    rooms_count=random.randint(1, 6),
+                    rooms_count=rooms_count,
                     is_active=True,
                     listed_as=listed_as,
                     power_of_attorney_document=poa_document,
                 )
                 # The moderation signal only ever rejects, never approves - force-approve
                 # seeded listings via .update() so it doesn't retrigger the post_save signal.
+                # Backdate created_at (auto_now_add otherwise forces it to "now") well before the
+                # furthest-back simulated booking (_create_bookings), so a listing never appears
+                # to have been booked before it existed.
+                backdated_created_at = timezone.now() - timedelta(
+                    days=random.randint(MAX_PAST_BOOKING_DAYS + 5, MAX_PAST_BOOKING_DAYS + 135)
+                )
                 Property.objects.filter(pk=property_.pk).update(
                     moderation_status=Property.ModerationStatusChoices.APPROVED,
+                    created_at=backdated_created_at,
                 )
                 property_.moderation_status = Property.ModerationStatusChoices.APPROVED
+                property_.created_at = backdated_created_at
 
                 property_.amenities.set(random.sample(amenities, k=random.randint(1, len(amenities))))
 
@@ -266,14 +396,15 @@ class Command(BaseCommand):
                     floor_info=f"{random.randint(1, 6)}. Stock" if random.random() < 0.6 else "",
                 )
 
-            for i in range(random.randint(2, 5)):
-                try:
-                    PropertyImage.objects.create(
-                        property=property_,
-                        image=self._fake_image_file(f"seed_{property_.pk}_{i}.jpg"),
-                    )
-                except OSError as exc:
-                    self.stderr.write(self.style.WARNING(f"Skipping image for property {property_.pk}: {exc}"))
+            folder = property_.category.name.lower()
+            photos = self._property_photo_pool.get(folder, [])
+            for _ in range(random.randint(2, 5)):
+                if not photos:
+                    break
+                PropertyImage.objects.create(
+                    property=property_,
+                    image=f"property_photos/{folder}/{random.choice(photos)}",
+                )
 
             return property_
 
@@ -288,12 +419,15 @@ class Command(BaseCommand):
 
         return properties
 
-    def _fake_image_file(self, name: str) -> ContentFile:
-        """Generate a small solid-color JPEG in memory, avoiding network calls for seed images."""
-        buffer = BytesIO()
-        color = tuple(random.randint(0, 255) for _ in range(3))
-        Image.new("RGB", (600, 400), color=color).save(buffer, format="JPEG")
-        return ContentFile(buffer.getvalue(), name=name)
+    def _load_property_photo_pool(self) -> dict[str, list[str]]:
+        """Filenames under media/property_photos/<category>/, keyed by lowercased category name."""
+        pool = {}
+        for folder in CATEGORY_NAMES:
+            folder = folder.lower()
+            category_dir = PROPERTY_PHOTOS_DIR / folder
+            if category_dir.is_dir():
+                pool[folder] = [f.name for f in category_dir.iterdir() if f.is_file()]
+        return pool
 
     def _fake_document_file(self, name: str) -> ContentFile:
         """Generate a plaintext stand-in for a power of attorney document."""
@@ -312,7 +446,7 @@ class Command(BaseCommand):
             if random.random() >= 0.7:
                 continue
 
-            cursor = today - timedelta(days=random.randint(180, 365))
+            cursor = today - timedelta(days=random.randint(180, MAX_PAST_BOOKING_DAYS))
             for _ in range(random.randint(1, 4)):
                 is_past = cursor < today
                 duration = (
@@ -358,10 +492,11 @@ class Command(BaseCommand):
                 continue
             try:
                 with transaction.atomic():
+                    rating = random.randint(1, 5)
                     Review.objects.create(
                         booking=booking,
-                        rating=random.randint(1, 5),
-                        comment=fake.paragraph(nb_sentences=3),
+                        rating=rating,
+                        comment=build_review_comment(rating),
                     )
             except Exception as exc:
                 self.stderr.write(self.style.WARNING(f"Skipping a review for booking {booking.pk}: {exc}"))

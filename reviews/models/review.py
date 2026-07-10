@@ -1,8 +1,14 @@
+from datetime import timedelta
+
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from bookings.models import Booking
+from bookings.models import Booking, BookingStatusChoices
+
+REVIEW_WINDOW_DAYS = 90
 
 
 class Review(models.Model):
@@ -37,3 +43,29 @@ class Review(models.Model):
         :return: the rating together with the reviewed property's title.
         """
         return f"{self.rating}/5 for {self.booking.property.title}"
+
+    def clean(self) -> None:
+        """
+        Enforce that a review only ever attaches to a settled booking, within a bounded window
+        after the stay ended. Who is allowed to write it (must be the booking's own tenant) is a
+        request-level concern, not a data invariant, so it's checked in the view/permission layer
+        instead (bookings/permissions.py::IsBookingTenant), not here.
+
+        :raises ValidationError: if the booking isn't PAID, or REVIEW_WINDOW_DAYS have passed
+            since the booking's end_date.
+        """
+        if self.booking_id is None:
+            return
+        if self.booking.status != BookingStatusChoices.PAID:
+            raise ValidationError(_("A review can only be left for a paid booking."))
+        deadline = self.booking.end_date + timedelta(days=REVIEW_WINDOW_DAYS)
+        if timezone.now().date() > deadline:
+            raise ValidationError(
+                _("Reviews must be submitted within %(days)d days of the booking's end date.")
+                % {"days": REVIEW_WINDOW_DAYS}
+            )
+
+    def save(self, *args, **kwargs) -> None:
+        """Run full model validation (including the PAID/time-window rules) before every save."""
+        self.full_clean()
+        super().save(*args, **kwargs)

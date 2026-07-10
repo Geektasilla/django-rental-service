@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import FileExtensionValidator, RegexValidator
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -8,8 +8,6 @@ phone_validator = RegexValidator(
     regex=r"^\+?[1-9]\d{7,14}$",
     message=_("Enter a valid phone number in international format, e.g. +491701234567."),
 )
-
-AVATAR_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp"]
 
 
 class UserManager(BaseUserManager):
@@ -79,14 +77,6 @@ class User(AbstractUser):
         unique=True,
         validators=[phone_validator],
     )
-    avatar = models.ImageField(
-        _("avatar"),
-        upload_to="avatars/",
-        blank=True,
-        null=True,
-        validators=[FileExtensionValidator(allowed_extensions=AVATAR_ALLOWED_EXTENSIONS)],
-    )
-
     is_owner = models.BooleanField(
         _("owner status"),
         default=False,
@@ -132,9 +122,21 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+        constraints = [
+            # Hardcoded, not GenderChoices.values: nested TextChoices isn't visible from Meta.
+            models.CheckConstraint(
+                condition=models.Q(gender__in=["male", "female", "other", "unspecified"]),
+                name="user_gender_valid",
+            ),
+        ]
 
     def __str__(self) -> str:
         """
         :return: the user's email address.
         """
         return self.email
+
+    def save(self, *args, **kwargs) -> None:
+        """Run full_clean() so the phone validator applies regardless of the caller."""
+        self.full_clean()
+        super().save(*args, **kwargs)

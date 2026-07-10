@@ -10,12 +10,15 @@ class UserAdmin(DjangoUserAdmin):
     """Admin for the custom email-based User; is_support/is_moderator are only settable here."""
 
     ordering = ["email"]
-    list_display = ["email", "phone", "is_owner", "is_agent", "is_support", "is_moderator", "is_staff"]
+    list_display = [
+        "email", "first_name", "last_name", "phone",
+        "is_owner", "is_agent", "is_support", "is_moderator", "is_staff",
+    ]
     search_fields = ["email", "phone"]
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        (_("Personal info"), {"fields": ("first_name", "last_name", "phone", "avatar", "gender")}),
+        (_("Personal info"), {"fields": ("first_name", "last_name", "phone", "gender")}),
         (_("Roles"), {"fields": ("is_owner", "is_agent", "is_support", "is_moderator")}),
         (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
@@ -28,22 +31,37 @@ class UserAdmin(DjangoUserAdmin):
     )
 
 
+class UserNameMixin:
+    """Adds first_name/last_name columns pulled from the related User."""
+
+    @admin.display(description=_("First name"), ordering="user__first_name")
+    def first_name(self, obj) -> str:
+        return obj.user.first_name
+
+    @admin.display(description=_("Last name"), ordering="user__last_name")
+    def last_name(self, obj) -> str:
+        return obj.user.last_name
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("user")
+
+
 @admin.register(TenantProfile)
-class TenantProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "status"]
+class TenantProfileAdmin(UserNameMixin, admin.ModelAdmin):
+    list_display = ["user", "first_name", "last_name", "status"]
     list_filter = ["status"]
     search_fields = ["user__email"]
 
 
 @admin.register(OwnerProfile)
-class OwnerProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "company_name", "is_company", "is_verified", "status"]
+class OwnerProfileAdmin(UserNameMixin, admin.ModelAdmin):
+    list_display = ["user", "first_name", "last_name", "company_name", "is_company", "is_verified", "status"]
     list_filter = ["is_company", "is_verified", "status"]
     search_fields = ["user__email", "company_name", "tax_id"]
 
 
 @admin.register(AgentProfile)
-class AgentProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "company_name", "is_certified", "status"]
+class AgentProfileAdmin(UserNameMixin, admin.ModelAdmin):
+    list_display = ["user", "first_name", "last_name", "company_name", "is_certified", "status"]
     list_filter = ["is_certified", "status"]
     search_fields = ["user__email", "company_name", "license_number"]

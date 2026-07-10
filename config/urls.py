@@ -18,10 +18,23 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+# from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView  # пока рано - нечего документировать
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('api/v1/auth/', include('users.urls')),
+    path('api/v1/users/', include('users.profile_urls')),
+    path('api/v1/listings/', include('listings.urls')),
+    path('api/v1/bookings/', include('bookings.urls')),
+    # reviews нет своего urls.py - вложены как actions под /listings/{id}/reviews/ и /bookings/{id}/review/
+    path('api/v1/notifications/', include('notifications.urls')),
+    path('api/v1/support/', include('support.urls')),
+    path('api/v1/analytics/', include('analytics.urls')),
+    # API documentation - пока рано, нечего документировать
+    # path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    # path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
 if settings.DEBUG:

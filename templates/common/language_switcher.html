@@ -1,0 +1,7 @@
+{% load i18n %}
+<form action="{% url 'set_language' %}" method="post" style="display:inline-block; margin-right:10px;">
+    {% csrf_token %}
+    <input name="next" type="hidden" value="{{ request.path }}">
+    <button type="submit" name="language" value="en" style="color: #000;">EN</button>
+    <button type="submit" name="language" value="de" style="color: #000;">DE</button>
+</form>

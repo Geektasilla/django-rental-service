@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 21:28+0200\n"
+"POT-Creation-Date: 2026-07-10 14:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Viktoriia\n"
 "Language-Team: German\n"
@@ -44,7 +44,7 @@ msgstr "Suchanfrage"
 
 #: .\analytics\models\search_history.py:17 .\common\models\base.py:8
 #: .\listings\models\moderator.py:47 .\notifications\models\notification.py:16
-#: .\reviews\models\review.py:22 .\support\models\message.py:22
+#: .\reviews\models\review.py:28 .\support\models\message.py:22
 #: .\support\models\ticket.py:34
 msgid "created at"
 msgstr "erstellt am"
@@ -90,8 +90,8 @@ msgstr "Eingefrorener Preis"
 #: .\bookings\models\booking.py:40
 msgid ""
 "Copy of Property.price_per_day (DAILY) or Property.price_per_month "
-"(LONG_TERM) at booking creation time; later owner price changes don't affect"
-" this contract."
+"(LONG_TERM) at booking creation time; later owner price changes don't affect "
+"this contract."
 msgstr ""
 "Kopie von Property.price_per_day (DAILY) oder Property.price_per_month "
 "(LONG_TERM) zum Zeitpunkt der Buchungserstellung; spätere Preisänderungen "
@@ -105,11 +105,11 @@ msgstr "Buchung"
 msgid "bookings"
 msgstr "Buchungen"
 
-#: .\bookings\models\booking.py:75
+#: .\bookings\models\booking.py:79
 msgid "End date must be after the start date."
 msgstr "Das Enddatum muss nach dem Startdatum liegen."
 
-#: .\bookings\models\booking.py:87
+#: .\bookings\models\booking.py:91
 msgid "This property is already booked for the selected dates."
 msgstr "Dieses Objekt ist für die ausgewählten Daten bereits gebucht."
 
@@ -145,11 +145,11 @@ msgstr "Vom Nutzer deaktiviert"
 msgid "Banned by Admin"
 msgstr "Vom Administrator gesperrt"
 
-#: .\config\settings.py:131
+#: .\config\settings.py:136
 msgid "English"
 msgstr "Englisch"
 
-#: .\config\settings.py:132
+#: .\config\settings.py:137
 msgid "German"
 msgstr "Deutsch"
 
@@ -395,25 +395,25 @@ msgstr "Immobilie"
 msgid "properties"
 msgstr "Immobilien"
 
-#: .\listings\models\property.py:147
+#: .\listings\models\property.py:161
 msgid "price_per_day is required for DAILY listings."
 msgstr "price_per_day ist für tägliche Angebote erforderlich."
 
-#: .\listings\models\property.py:149
+#: .\listings\models\property.py:163
 msgid "price_per_month is required for LONG_TERM listings."
 msgstr "price_per_month ist für langfristige Angebote erforderlich."
 
-#: .\listings\models\property.py:157
+#: .\listings\models\property.py:171
 msgid "A power of attorney document is required when listing as an agent."
 msgstr "Beim Anbieten als Makler ist ein Vollmachtsdokument erforderlich."
 
-#: .\listings\models\property.py:162
+#: .\listings\models\property.py:176
 msgid "Only a certified agent may list a property on a client's behalf."
 msgstr ""
 "Nur ein zertifizierter Makler darf ein Objekt im Auftrag eines Kunden "
 "anbieten."
 
-#: .\listings\models\property.py:167
+#: .\listings\models\property.py:181
 msgid "Only a user with owner status may list a property as themselves."
 msgstr ""
 "Nur ein Nutzer mit Eigentümerstatus darf ein Objekt in eigenem Namen "
@@ -480,21 +480,31 @@ msgstr "Benachrichtigungen"
 msgid "Reviews"
 msgstr "Rezensionen"
 
-#: .\reviews\models\review.py:18
+#: .\reviews\models\review.py:24
 msgid "rating"
 msgstr "Bewertung"
 
-#: .\reviews\models\review.py:21
+#: .\reviews\models\review.py:27
 msgid "comment"
 msgstr "Kommentar"
 
-#: .\reviews\models\review.py:25
+#: .\reviews\models\review.py:31
 msgid "review"
 msgstr "Rezension"
 
-#: .\reviews\models\review.py:26
+#: .\reviews\models\review.py:32
 msgid "reviews"
 msgstr "Rezensionen"
+
+#: .\reviews\models\review.py:60
+msgid "A review can only be left for a paid booking."
+msgstr ""
+
+#: .\reviews\models\review.py:64
+#, python-format
+msgid ""
+"Reviews must be submitted within %(days)d days of the booking's end date."
+msgstr ""
 
 #: .\support\apps.py:7
 msgid "Support"
@@ -585,101 +595,96 @@ msgid "agent profiles"
 msgstr "Maklerprofile"
 
 #: .\users\models\base_user.py:9
-msgid ""
-"Enter a valid phone number in international format, e.g. +491701234567."
+msgid "Enter a valid phone number in international format, e.g. +491701234567."
 msgstr ""
 "Bitte eine gültige Telefonnummer im internationalen Format eingeben, z. B. "
 "+491701234567."
 
-#: .\users\models\base_user.py:30
+#: .\users\models\base_user.py:28
 msgid "The email address must be set."
 msgstr "Die E-Mail-Adresse muss angegeben werden."
 
-#: .\users\models\base_user.py:64
+#: .\users\models\base_user.py:62
 msgid "Superuser must have is_staff=True."
 msgstr "Ein Superuser muss is_staff=True haben."
 
-#: .\users\models\base_user.py:66
+#: .\users\models\base_user.py:64
 msgid "Superuser must have is_superuser=True."
 msgstr "Ein Superuser muss is_superuser=True haben."
 
-#: .\users\models\base_user.py:75
+#: .\users\models\base_user.py:73
 msgid "email address"
 msgstr "E-Mail-Adresse"
 
-#: .\users\models\base_user.py:77
+#: .\users\models\base_user.py:75
 msgid "phone number"
 msgstr "Telefonnummer"
 
-#: .\users\models\base_user.py:83
-msgid "avatar"
-msgstr "Profilbild"
-
-#: .\users\models\base_user.py:91
+#: .\users\models\base_user.py:81
 msgid "owner status"
 msgstr "Eigentümerstatus"
 
-#: .\users\models\base_user.py:93
+#: .\users\models\base_user.py:83
 msgid "Grants access to landlord (property owner) features."
 msgstr "Gewährt Zugriff auf Vermieter-Funktionen (Immobilieneigentümer)."
 
-#: .\users\models\base_user.py:96
+#: .\users\models\base_user.py:86
 msgid "agent status"
 msgstr "Maklerstatus"
 
-#: .\users\models\base_user.py:98
+#: .\users\models\base_user.py:88
 msgid "Grants access to real estate agent features."
 msgstr "Gewährt Zugriff auf Makler-Funktionen."
 
-#: .\users\models\base_user.py:101
+#: .\users\models\base_user.py:91
 msgid "support status"
 msgstr "Support-Status"
 
-#: .\users\models\base_user.py:103
+#: .\users\models\base_user.py:93
 msgid ""
-"Grants access to support ticket features. Settable only via admin, never via"
-" a public serializer."
+"Grants access to support ticket features. Settable only via admin, never via "
+"a public serializer."
 msgstr ""
 "Gewährt Zugriff auf Support-Ticket-Funktionen. Nur über das Admin-Panel "
 "einstellbar, niemals über einen öffentlichen Serializer."
 
-#: .\users\models\base_user.py:106
+#: .\users\models\base_user.py:96
 msgid "moderator status"
 msgstr "Moderatorstatus"
 
-#: .\users\models\base_user.py:108
+#: .\users\models\base_user.py:98
 msgid ""
-"Grants access to listing moderation features. Settable only via admin, never"
-" via a public serializer."
+"Grants access to listing moderation features. Settable only via admin, never "
+"via a public serializer."
 msgstr ""
 "Gewährt Zugriff auf Funktionen zur Angebotsmoderation. Nur über das Admin-"
 "Panel einstellbar, niemals über einen öffentlichen Serializer."
 
-#: .\users\models\base_user.py:120
+#: .\users\models\base_user.py:110
 msgid "Male"
 msgstr "Männlich"
 
-#: .\users\models\base_user.py:121
+#: .\users\models\base_user.py:111
 msgid "Female"
 msgstr "Weiblich"
 
-#: .\users\models\base_user.py:122
+#: .\users\models\base_user.py:112
 msgid "Other / Non-binary"
 msgstr "Divers / Nicht-binär"
 
-#: .\users\models\base_user.py:123
+#: .\users\models\base_user.py:113
 msgid "Prefer not to say"
 msgstr "Keine Angabe"
 
-#: .\users\models\base_user.py:126
+#: .\users\models\base_user.py:116
 msgid "gender"
 msgstr "Geschlecht"
 
-#: .\users\models\base_user.py:133
+#: .\users\models\base_user.py:123
 msgid "user"
 msgstr "Nutzer"
 
-#: .\users\models\base_user.py:134
+#: .\users\models\base_user.py:124
 msgid "users"
 msgstr "Nutzer"
 
@@ -769,3 +774,14 @@ msgstr "Mieterprofil"
 #: .\users\models\tenant.py:31
 msgid "tenant profiles"
 msgstr "Mieterprofile"
+
+#: .\users\serializers.py:16
+msgid "password"
+msgstr "Passwort"
+
+#: .\users\serializers.py:48
+msgid "refresh token"
+msgstr "Refresh-Token"
+
+#~ msgid "avatar"
+#~ msgstr "Profilbild"

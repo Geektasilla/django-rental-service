@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+from datetime import timedelta
 from pathlib import Path
 from environ import Env
 from django.utils.translation import gettext_lazy as _
@@ -40,6 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
+    'django_filters',
     'users.apps.UsersConfig',
     'listings.apps.ListingsConfig',
     'bookings.apps.BookingsConfig',
@@ -47,6 +51,7 @@ INSTALLED_APPS = [
     'notifications.apps.NotificationsConfig',
     'support.apps.SupportConfig',
     'analytics.apps.AnalyticsConfig',
+    # 'drf_spectacular',  # пока рано - нечего документировать, включить вместе с SPECTACULAR_SETTINGS ниже
 ]
 
 MIDDLEWARE = [
@@ -164,9 +169,6 @@ CACHES = {
 
 AUTH_USER_MODEL = 'users.User'
 
-# Allowed file extensions for avatars
-AVATAR_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
-
 # Allowed file extensions for property images
 PROPERTY_IMAGE_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
 MAX_PROPERTY_IMAGES = 10 
@@ -179,3 +181,49 @@ AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY', default='')
 AWS_REGION_NAME = env.str('AWS_REGION_NAME', default='eu-central-1')
 
 OPENAI_API_KEY = env.str('OPENAI_API_KEY', default='')
+
+# SEEDING (users/management/commands/seed_data.py) - shared login password for every Faker-
+# generated test user, and the email domain used to mark/identify seeded accounts (checkpointing
+# re-runs, cleanup). Only ever used by a command that refuses to run unless DEBUG=True.
+SEED_PASSWORD = env.str('SEED_PASSWORD', default='TestPass123!')
+SEED_EMAIL_DOMAIN = env.str('SEED_EMAIL_DOMAIN', default='example.com')
+
+# DJANGO REST FRAMEWORK
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+
+
+# раскомментировать вместе с urls.py/INSTALLED_APPS
+# SPECTACULAR_SETTINGS = {
+#     'TITLE': 'Django Rental Service API',
+#     'DESCRIPTION': 'API for managing rental properties, bookings, and user accounts.',
+#     'VERSION': '1.0.0',
+#     'SERVE_INCLUDE_SCHEMA': False, # Отключаем включение схемы в UI, чтобы она была доступна по отдельному URL
+#     'SWAGGER_UI_SETTINGS': {
+#         'deepLinking': True,
+#         'displayRequestDuration': True,
+#         'filter': True,
+#         'showExtensions': True,
+#     },
+# }

@@ -51,6 +51,10 @@ class Booking(TimeStampedModel):
                 condition=models.Q(end_date__gt=models.F("start_date")),
                 name="booking_end_date_after_start_date",
             ),
+            models.CheckConstraint(
+                condition=models.Q(status__in=BookingStatusChoices.values),
+                name="booking_status_valid",
+            ),
         ]
 
     def __str__(self) -> str:
@@ -88,12 +92,24 @@ class Booking(TimeStampedModel):
             )
 
     def save(self, *args, **kwargs) -> None:
-        """Freeze the rent_type-appropriate price from the linked Property on creation, then validate."""
+        """
+        Freeze the rent_type-appropriate price from the linked Property on creation. On update,
+        auto-unpublish a LONG_TERM property once its booking settles to PAID (a long-term tenant
+        moving in takes the property off the market; DAILY listings stay bookable by others).
+        """
         if self._state.adding:
             self.price_frozen = (
                 self.property.price_per_day
                 if self.property.rent_type == Property.RentTypeChoices.DAILY
                 else self.property.price_per_month
             )
+        else:
+            previous_status = Booking.objects.filter(pk=self.pk).values_list("status", flat=True).first()
+            if (
+                previous_status != BookingStatusChoices.PAID
+                and self.status == BookingStatusChoices.PAID
+                and self.property.rent_type == Property.RentTypeChoices.LONG_TERM
+            ):
+                Property.objects.filter(pk=self.property_id).update(is_active=False)
         self.full_clean()
         super().save(*args, **kwargs)

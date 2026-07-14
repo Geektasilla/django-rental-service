@@ -6,7 +6,9 @@ class PostalCode(models.Model):
     """German postal code lookup table (3NF): code maps to city/state."""
 
     code = models.CharField(_("postal code"), max_length=10, primary_key=True)
-    city = models.CharField(_("city"), max_length=100)
+    # Indexed: PropertyFilter's `city` filter (listings/filters.py) joins Property -> Location ->
+    # Address -> PostalCode and filters on this field on every such search request.
+    city = models.CharField(_("city"), max_length=100, db_index=True)
     state = models.CharField(
         _("state"),
         max_length=100,

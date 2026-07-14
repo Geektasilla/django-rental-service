@@ -27,19 +27,21 @@ def _notify_moderators_of_pending_listing(instance: Property) -> None:
     """
     Create an in-app Notification for every active moderator when a new listing needs review.
 
-    In-app only (Notification row, no email/push) - a stopgap until Celery+SMTP exist in the
-    project (see tools/issues.md). Moderators must check GET /api/v1/notifications/ themselves;
-    there is no external ping.
+    In-app only (Notification row, no email/push) - moderators must check GET
+    /api/v1/notifications/ themselves; there is no external ping.
 
     :param instance: the newly created Property, still PENDING after the automated text check.
     """
     moderators = User.objects.filter(is_moderator=True, is_active=True)
     Notification.objects.bulk_create(
-        Notification(
-            user=moderator,
-            message=str(_("New listing pending review: %(title)s") % {"title": instance.title}),
-        )
-        for moderator in moderators
+        (
+            Notification(
+                user=moderator,
+                message=str(_("New listing pending review: %(title)s") % {"title": instance.title}),
+            )
+            for moderator in moderators
+        ),
+        batch_size=500,
     )
 
 

@@ -1,7 +1,9 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError
 from django.db.models import Count, ProtectedError, Q, QuerySet
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from django.utils.translation import gettext_lazy as _
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.parsers import MultiPartParser
@@ -11,19 +13,44 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from analytics.models import PropertyView, SearchHistory
+from common.mixins import ActionPermissionsMixin
 from common.utils import as_drf_validation_error, get_client_ip
 from listings.filters import PropertyFilter
-from listings.models import ModerationLog, Property, PropertyImage
+from listings.models import Amenity, Category, ModerationLog, Property, PropertyDeletionLog, PropertyImage
 from listings.permissions import IsPropertyOwner
-from listings.serializers import ModerationDecisionSerializer, PropertyImageSerializer, PropertySerializer
+from listings.serializers import (
+    AmenitySerializer,
+    CategorySerializer,
+    ModerationDecisionSerializer,
+    PropertyImageSerializer,
+    PropertySerializer,
+)
 from reviews.models import Review
 from reviews.serializers import ReviewSerializer
 from users.permissions import IsModerator, IsOwnerOrAgent
 
-_MODIFY_ACTIONS = {"update", "partial_update", "destroy", "upload_image", "delete_image"}
+_MODIFY_ACTIONS = ["update", "partial_update", "destroy", "upload_image", "delete_image"]
 
 
-class PropertyViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Read-only taxonomy list, so a client can populate a category dropdown when creating a listing."""
+
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [AllowAny]
+    pagination_class = None
+
+
+class AmenityViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Read-only taxonomy list, so a client can populate an amenities checklist when creating a listing."""
+
+    queryset = Amenity.objects.all()
+    serializer_class = AmenitySerializer
+    permission_classes = [AllowAny]
+    pagination_class = None
+
+
+class PropertyViewSet(ActionPermissionsMixin, viewsets.ModelViewSet):
     """
     CRUD + search/filter/sort for Property listings.
 
@@ -38,22 +65,14 @@ class PropertyViewSet(viewsets.ModelViewSet):
     search_fields = ["title", "description"]
     ordering_fields = ["price_per_day", "price_per_month", "created_at", "popularity"]
     ordering = ["-created_at"]
-
-    def get_permissions(self) -> list:
-        """
-        :return: instantiated permission objects for the current action - AllowAny for read
-            actions (guest browsing), IsOwnerOrAgent for creation, and both IsOwnerOrAgent +
-            IsPropertyOwner (object-level) for anything that mutates an existing listing.
-        """
-        if self.action == "create":
-            permission_classes = [IsOwnerOrAgent]
-        elif self.action in _MODIFY_ACTIONS:
-            permission_classes = [IsOwnerOrAgent, IsPropertyOwner]
-        elif self.action == "moderate":
-            permission_classes = [IsModerator]
-        else:
-            permission_classes = [AllowAny]
-        return [permission() for permission in permission_classes]
+    # AllowAny for read actions (guest browsing), IsOwnerOrAgent for creation, and both
+    # IsOwnerOrAgent + IsPropertyOwner (object-level) for anything that mutates an existing listing.
+    default_permission_classes = [AllowAny]
+    permission_classes_by_action = {
+        "create": [IsOwnerOrAgent],
+        "moderate": [IsModerator],
+        **{action: [IsOwnerOrAgent, IsPropertyOwner] for action in _MODIFY_ACTIONS},
+    }
 
     def get_queryset(self) -> QuerySet:
         """
@@ -104,19 +123,39 @@ class PropertyViewSet(viewsets.ModelViewSet):
             Booking.property is on_delete=PROTECT) and can't be deleted.
         """
         instance = self.get_object()
+        property_id, property_title = instance.pk, instance.title
         try:
             instance.delete()
         except ProtectedError:
             return Response(
-                {"detail": "This listing has bookings or other history and cannot be deleted. "
-                           "Use is_active to unpublish it instead."},
+                {
+                    "detail": _(
+                        "This listing has bookings or other history and cannot be deleted. "
+                        "Use is_active to unpublish it instead."
+                    )
+                },
                 status=status.HTTP_409_CONFLICT,
             )
+        PropertyDeletionLog.objects.create(
+            property_id=property_id,
+            property_title=property_title,
+            deleted_by=request.user,
+            ip_address=get_client_ip(request),
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["post"], parser_classes=[MultiPartParser], url_path="images")
     def upload_image(self, request: Request, pk: str | None = None) -> Response:
-        """Add a photo to this listing (subject to Property/PropertyImage validation, e.g. MAX_PROPERTY_IMAGES)."""
+        """
+        Add a photo to this listing (subject to Property/PropertyImage validation, e.g. MAX_PROPERTY_IMAGES).
+
+        ``PropertyImage.clean()``'s image-count check is check-then-act, same shape as the review
+        race fixed in bookings/views.py::review(): two near-simultaneous uploads at the limit can
+        both pass the Python-side count before either commits, so the second INSERT is caught by
+        the DB-level ``property_image_limit_check`` trigger (listings/migrations/
+        0007_property_image_limit_trigger.py) instead, raising IntegrityError rather than
+        ValidationError - caught separately below for the same clean 400 instead of a 500.
+        """
         property_obj = self.get_object()
         serializer = PropertyImageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -124,6 +163,11 @@ class PropertyViewSet(viewsets.ModelViewSet):
             serializer.save(property=property_obj)
         except DjangoValidationError as exc:
             raise as_drf_validation_error(exc)
+        except IntegrityError:
+            return Response(
+                {"detail": _("A property cannot have more than the maximum number of images.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["delete"], url_path=r"images/(?P<image_id>\d+)")

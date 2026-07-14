@@ -12,21 +12,30 @@ from .amenity import Amenity
 from .category import Category
 
 
+class RentTypeChoices(models.TextChoices):
+    DAILY = "daily", _("Daily")
+    LONG_TERM = "long_term", _("Long-term")
+
+
+class ModerationStatusChoices(models.TextChoices):
+    PENDING = "pending", _("Pending review")
+    APPROVED = "approved", _("Approved")
+    REJECTED = "rejected", _("Rejected")
+
+
+class ListedAsChoices(models.TextChoices):
+    OWNER = "owner", _("As owner (own property)")
+    AGENT = "agent", _("As agent (on behalf of a client)")
+
+
 class Property(TimeStampedModel):
     """A rental listing, either daily (short-term) or long-term."""
 
-    class RentTypeChoices(models.TextChoices):
-        DAILY = "daily", _("Daily")
-        LONG_TERM = "long_term", _("Long-term")
-
-    class ModerationStatusChoices(models.TextChoices):
-        PENDING = "pending", _("Pending review")
-        APPROVED = "approved", _("Approved")
-        REJECTED = "rejected", _("Rejected")
-
-    class ListedAsChoices(models.TextChoices):
-        OWNER = "owner", _("As owner (own property)")
-        AGENT = "agent", _("As agent (on behalf of a client)")
+    # Module-level so Meta.constraints (a sibling nested class) can reference .values directly,
+    # and so existing callers keep using Property.RentTypeChoices etc.
+    RentTypeChoices = RentTypeChoices
+    ModerationStatusChoices = ModerationStatusChoices
+    ListedAsChoices = ListedAsChoices
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -108,6 +117,12 @@ class Property(TimeStampedModel):
         verbose_name = _("property")
         verbose_name_plural = _("properties")
         ordering = ["-created_at"]
+        indexes = [
+            # Matches the exact filter PropertyViewSet.get_queryset() runs on every guest/anonymous
+            # request (is_active=True, moderation_status=APPROVED) - without it that query does a
+            # full table scan once the table is larger than the current seed-data size.
+            models.Index(fields=["is_active", "moderation_status"], name="property_visible_idx"),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(price_per_day__isnull=True) | models.Q(price_per_day__gt=0),
@@ -121,34 +136,32 @@ class Property(TimeStampedModel):
                 condition=models.Q(rooms_count__gte=1) & models.Q(rooms_count__lte=20),
                 name="property_rooms_count_range",
             ),
-            # Values hardcoded, not RentTypeChoices.values: a nested TextChoices class isn't
-            # visible from a sibling nested Meta class (Python class-body scoping rules).
             models.CheckConstraint(
-                condition=models.Q(rent_type__in=["daily", "long_term"]),
+                condition=models.Q(rent_type__in=RentTypeChoices.values),
                 name="property_rent_type_valid",
             ),
             models.CheckConstraint(
-                condition=models.Q(moderation_status__in=["pending", "approved", "rejected"]),
+                condition=models.Q(moderation_status__in=ModerationStatusChoices.values),
                 name="property_moderation_status_valid",
             ),
             models.CheckConstraint(
-                condition=models.Q(listed_as__in=["owner", "agent"]),
+                condition=models.Q(listed_as__in=ListedAsChoices.values),
                 name="property_listed_as_valid",
             ),
             # Same-row rules from Property.clean(), now also enforced at the DB level so
             # bulk_create()/bulk_update()/.update() can't bypass them.
             models.CheckConstraint(
                 condition=(
-                    models.Q(rent_type="daily", price_per_day__isnull=False)
-                    | models.Q(rent_type="long_term", price_per_month__isnull=False)
+                    models.Q(rent_type=RentTypeChoices.DAILY, price_per_day__isnull=False)
+                    | models.Q(rent_type=RentTypeChoices.LONG_TERM, price_per_month__isnull=False)
                 ),
                 name="property_price_required_for_rent_type",
             ),
             models.CheckConstraint(
                 condition=(
-                    models.Q(listed_as="owner")
+                    models.Q(listed_as=ListedAsChoices.OWNER)
                     | (
-                        models.Q(listed_as="agent")
+                        models.Q(listed_as=ListedAsChoices.AGENT)
                         & models.Q(power_of_attorney_document__isnull=False)
                         & ~models.Q(power_of_attorney_document="")
                     )

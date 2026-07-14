@@ -1,0 +1,25 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content_title %}
+    {{ block.super }}
+    {% if popular_searches %}
+        <h2>{% translate "Most popular searches" %}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>{% translate "Search query" %}</th>
+                    <th>{% translate "Total searches" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in popular_searches %}
+                    <tr>
+                        <td>{{ row.search_query }}</td>
+                        <td>{{ row.total_searches }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

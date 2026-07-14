@@ -1,0 +1,25 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content_title %}
+    {{ block.super }}
+    {% if popular_properties %}
+        <h2>{% translate "Most viewed properties" %}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>{% translate "Property" %}</th>
+                    <th>{% translate "Total views" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in popular_properties %}
+                    <tr>
+                        <td>{{ row.property__title }}</td>
+                        <td>{{ row.total_views }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

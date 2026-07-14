@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from common.mixins import ActionPermissionsMixin
 from common.utils import visible_to_participants
 from support.models import Message, Ticket
 from support.permissions import IsAssignedSupportAgent
@@ -13,6 +14,7 @@ from users.models import User
 
 
 class TicketViewSet(
+    ActionPermissionsMixin,
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -26,20 +28,17 @@ class TicketViewSet(
     """
 
     serializer_class = TicketSerializer
-
-    def get_permissions(self) -> list:
-        """
-        :return: instantiated permission objects for the current action - opening a ticket only
-            requires being logged in; changing its status is restricted to the assigned agent.
-        """
-        if self.action in ("update", "partial_update"):
-            permission_classes = [IsAuthenticated, IsAssignedSupportAgent]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+    # Opening a ticket only requires being logged in; changing its status is restricted to the
+    # assigned agent.
+    permission_classes_by_action = {
+        "update": [IsAuthenticated, IsAssignedSupportAgent],
+        "partial_update": [IsAuthenticated, IsAssignedSupportAgent],
+    }
 
     def get_queryset(self) -> QuerySet:
         """:return: tickets the user opened, is assigned to, or all of them for staff."""
+        if getattr(self, "swagger_fake_view", False):
+            return Ticket.objects.none()
         queryset = Ticket.objects.select_related("user", "assigned_to")
         return visible_to_participants(queryset, self.request.user, "user", "assigned_to")
 
@@ -81,5 +80,8 @@ class TicketViewSet(
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         message_qs = ticket.messages.select_related("sender")
-        serializer = MessageSerializer(message_qs, many=True)
+        page = self.paginate_queryset(message_qs)
+        serializer = MessageSerializer(page if page is not None else message_qs, many=True)
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
         return Response(serializer.data)

@@ -11,9 +11,11 @@ class Ticket(models.Model):
         IN_PROGRESS = "in_progress", _("In progress")
         CLOSED = "closed", _("Closed")
 
+    # PROTECT, not CASCADE: deleting a user must not silently wipe support agents' message
+    # history on tickets that user opened (Message.sender is also PROTECT).
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="tickets",
     )
     assigned_to = models.ForeignKey(

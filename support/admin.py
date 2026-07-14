@@ -14,3 +14,6 @@ class TicketAdmin(admin.ModelAdmin):
     list_filter = ["status"]
     search_fields = ["subject", "user__email"]
     inlines = [MessageInline]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("user", "assigned_to")

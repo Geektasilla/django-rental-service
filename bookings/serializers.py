@@ -1,5 +1,7 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from bookings.models import Booking
@@ -33,6 +35,18 @@ class BookingSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "tenant", "status", "price_frozen", "created_at", "updated_at"]
 
+    def validate_start_date(self, value):
+        """
+        :param value: the requested start date, as submitted by the client.
+        :return: value, unchanged, if it isn't in the past.
+        :raises rest_framework.exceptions.ValidationError: if value is before today.
+        """
+        if value < timezone.localdate():
+            raise serializers.ValidationError(
+                _("This start date has already passed - please choose today or a later date.")
+            )
+        return value
+
     def create(self, validated_data: dict) -> Booking:
         """
         :param validated_data: validated input (property, start_date, end_date).
@@ -59,6 +73,6 @@ class BookingSerializer(serializers.ModelSerializer):
             raise as_drf_validation_error(exc)
         except IntegrityError:
             raise serializers.ValidationError(
-                {"detail": "This property is already booked for the selected dates."}
+                {"detail": _("This property is already booked for the selected dates.")}
             )
         return booking

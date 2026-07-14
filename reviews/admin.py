@@ -8,3 +8,6 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ["booking", "rating", "created_at"]
     list_filter = ["rating"]
     search_fields = ["booking__property__title", "booking__tenant__email"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("booking__property", "booking__tenant")

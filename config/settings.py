@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
@@ -51,11 +52,15 @@ INSTALLED_APPS = [
     'notifications.apps.NotificationsConfig',
     'support.apps.SupportConfig',
     'analytics.apps.AnalyticsConfig',
-    # 'drf_spectacular',  # пока рано - нечего документировать, включить вместе с SPECTACULAR_SETTINGS ниже
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # As high as possible (django-cors-headers docs), before CommonMiddleware - needs to run
+    # before anything that might return a response early (e.g. CommonMiddleware's redirects),
+    # otherwise CORS headers wouldn't be attached to that early response.
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -171,7 +176,12 @@ AUTH_USER_MODEL = 'users.User'
 
 # Allowed file extensions for property images
 PROPERTY_IMAGE_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
-MAX_PROPERTY_IMAGES = 10 
+MAX_PROPERTY_IMAGES = 10
+
+# How long SearchHistory/PropertyView rows are kept before analytics.management.commands.
+# cleanup_analytics deletes them (GDPR storage-limitation principle - this data has no legal
+# retention requirement, unlike Booking/Ticket).
+ANALYTICS_RETENTION_DAYS = env.int('ANALYTICS_RETENTION_DAYS', default=90)
 
 
 # CONTENT MODERATION (listings app)
@@ -188,6 +198,83 @@ OPENAI_API_KEY = env.str('OPENAI_API_KEY', default='')
 SEED_PASSWORD = env.str('SEED_PASSWORD', default='TestPass123!')
 SEED_EMAIL_DOMAIN = env.str('SEED_EMAIL_DOMAIN', default='example.com')
 
+# EMAIL (password reset / email verification, users app) - sent synchronously with try/except at
+# the call site (same pattern as listings/services/moderation.py), unlike the booking-notification
+# email in bookings/tasks.py which goes through Celery. Defaults to the console backend so nothing
+# is required to run locally; set EMAIL_BACKEND/EMAIL_HOST etc. in .env for a real SMTP provider.
+EMAIL_BACKEND = env.str('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = env.str('EMAIL_HOST', default='')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_HOST_USER = env.str('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL', default='noreply@django-rental-service.local')
+
+# Base URL of the (not-yet-built) frontend, used to build password-reset/email-verification links
+# sent in emails. Points at a placeholder path until a frontend exists.
+FRONTEND_URL = env.str('FRONTEND_URL', default='http://localhost:3000')
+
+# CORS (django-cors-headers) - no frontend exists yet, so this only matters once one does, but
+# without it the browser silently blocks every request from a different origin (different port
+# counts as a different origin) and the API looks "broken" for no obvious reason. Reuses
+# FRONTEND_URL as the one trusted origin rather than a separate env var, since they describe the
+# same thing; comma-separated CORS_EXTRA_ORIGINS covers any additional origins (e.g. a deployed
+# preview URL) without needing a code change.
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL] + [
+    origin for origin in env.str('CORS_EXTRA_ORIGINS', default='').split(',') if origin
+]
+CORS_ALLOW_CREDENTIALS = True
+
+# CELERY (bookings/tasks.py) - separate Redis DB index from CACHES above so a `flushdb` on the
+# cache doesn't also wipe queued/in-flight tasks. TASK_ALWAYS_EAGER defaults False (real async
+# execution via a worker); flip it in .env for local runs/tests without Redis, same override
+# pattern already used for CACHES in test files (LocMemCache via override_settings).
+CELERY_BROKER_URL = env.str('CELERY_BROKER_URL', default='redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = env.str('CELERY_RESULT_BACKEND', default='redis://127.0.0.1:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=False)
+
+# LOGGING - critical failures (uncaught exceptions -> common.exceptions.exception_handler
+# below, plus any logger.exception() call anywhere, e.g. listings/services/moderation.py,
+# common/services/email.py) go to errors.log, not just the console. Console output is kept as-is
+# for local dev visibility; the file handler is the one that survives after the terminal closes.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {levelname} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'errors_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'errors.log',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'errors_file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'errors_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
 # DJANGO REST FRAMEWORK
 
 REST_FRAMEWORK = {
@@ -202,6 +289,19 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.AnonRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '1000/day',
+        'anon': '100/day',
+        'register': '10/hour',
+        'password_reset': '5/hour',
+        'email_verification': '5/hour',
+    },
+    'EXCEPTION_HANDLER': 'common.exceptions.exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -214,16 +314,53 @@ SIMPLE_JWT = {
 
 
 
-# раскомментировать вместе с urls.py/INSTALLED_APPS
-# SPECTACULAR_SETTINGS = {
-#     'TITLE': 'Django Rental Service API',
-#     'DESCRIPTION': 'API for managing rental properties, bookings, and user accounts.',
-#     'VERSION': '1.0.0',
-#     'SERVE_INCLUDE_SCHEMA': False, # Отключаем включение схемы в UI, чтобы она была доступна по отдельному URL
-#     'SWAGGER_UI_SETTINGS': {
-#         'deepLinking': True,
-#         'displayRequestDuration': True,
-#         'filter': True,
-#         'showExtensions': True,
-#     },
-# }
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Django Rental Service API',
+    'DESCRIPTION': 'API for managing rental properties, bookings, and user accounts.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False, # Отключаем включение схемы в UI, чтобы она была доступна по отдельному URL
+    # Without this, drf-spectacular derives each endpoint's Swagger/Redoc tag from the first path
+    # segment after '/api/', which is 'v1' for every single endpoint - grouping the entire API
+    # under one flat, unreadable "v1" section. Stripping the version prefix lets it fall back to
+    # the next segment instead (auth/bookings/listings/...), grouping by resource as expected.
+    'SCHEMA_PATH_PREFIX': r'/api/v1',
+    # Multiple serializers expose a field literally named "status" backed by different TextChoices
+    # (Booking/Ticket/the three role profiles) - without explicit names drf-spectacular can't tell
+    # them apart and falls back to an auto-generated, non-descriptive name like "StatusFf3Enum".
+    'ENUM_NAME_OVERRIDES': {
+        'BookingStatusEnum': 'bookings.models.status.BookingStatusChoices',
+        'TicketStatusEnum': 'support.models.ticket.Ticket.StatusChoices',
+        'ProfileStatusEnum': 'common.models.choices.ProfileStatusChoices',
+    },
+    # Documentation (schema/Swagger/Redoc) is staff-only, not public - only affects who can open
+    # these three pages, not the rest of the API (each endpoint still enforces its own permissions
+    # regardless of this setting).
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAdminUser'],
+    # SessionAuthentication (not the project's default JWTAuthentication) so a staff member logged
+    # into /admin/ in their browser can open the docs directly - a browser page navigation can't
+    # attach a JWT Bearer header, only the session cookie set by logging into Django admin.
+    'SERVE_AUTHENTICATION': ['rest_framework.authentication.SessionAuthentication'],
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'displayRequestDuration': True,
+        'filter': True,
+        'showExtensions': True,
+        # Keeps the JWT entered via "Authorize" across page reloads (localStorage) - without this,
+        # refreshing the Swagger UI page silently drops authorization and every request looks like
+        # a fresh 401 until you paste the token back in.
+        'persistAuthorization': True,
+    },
+}
+
+# PRODUCTION SECURITY HARDENING - guarded by `not DEBUG` so local dev over plain http:// is
+# unaffected (SECURE_SSL_REDIRECT/HSTS would otherwise break `runserver`, which has no TLS).
+# None of this is optional once real deployment happens - this is the first section of Django's
+# own deployment checklist (`manage.py check --deploy`).
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year, the standard HSTS preload-eligible minimum.
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True

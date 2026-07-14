@@ -23,13 +23,15 @@ from listings.models import (
     PropertyLocation,
 )
 from reviews.models import Review
+from support.models import Message, Ticket
 from users.models import AgentProfile, OwnerProfile, TenantProfile, User
 
-USER_COUNT = 120
+USER_COUNT = 150
 PROPERTY_COUNT = 100
 CERTIFIED_AGENT_LANDLORD_WEIGHT = 6
 PRIVATE_OWNER_LANDLORD_WEIGHT = 1
 SEARCH_HISTORY_COUNT = 200
+TICKET_COUNT = 40
 MAX_ATTEMPTS_PER_TARGET = 10
 MAX_PAST_BOOKING_DAYS = 365
 
@@ -122,6 +124,25 @@ AGENT_BIO_SENTENCES = [
     "Verfügt über mehrjährige Erfahrung in der Immobilienvermittlung.",
     "Begleitet Mieter und Vermieter kompetent durch den gesamten Vermietungsprozess.",
     "Bietet eine persönliche Beratung und schnelle Terminvereinbarung.",
+]
+
+TICKET_SUBJECTS = [
+    "Frage zur Buchung", "Problem mit der Zahlung", "Wohnung nicht wie beschrieben",
+    "Stornierung einer Buchung", "Frage zum Vermieter", "Technisches Problem mit dem Konto",
+    "Frage zur Rechnung", "Verifizierung des Kontos",
+]
+TICKET_OPENING_MESSAGES = [
+    "Ich habe eine Frage zu meiner aktuellen Buchung und wüsste gerne mehr Details.",
+    "Bei der Zahlung ist ein Fehler aufgetreten, könnten Sie das bitte prüfen?",
+    "Die Wohnung entsprach leider nicht der Beschreibung im Inserat.",
+    "Ich möchte meine Buchung stornieren und frage nach den Bedingungen.",
+    "Mein Konto lässt sich nicht wie erwartet verwenden, können Sie helfen?",
+]
+TICKET_REPLY_MESSAGES = [
+    "Vielen Dank für Ihre Nachricht, wir kümmern uns umgehend darum.",
+    "Könnten Sie uns bitte weitere Details zu Ihrem Anliegen mitteilen?",
+    "Das Problem wurde geprüft und sollte nun behoben sein.",
+    "Wir haben Ihre Anfrage an das zuständige Team weitergeleitet.",
 ]
 
 
@@ -217,6 +238,9 @@ class Command(BaseCommand):
         self._create_search_history(users)
         self._create_property_views(fake, users, properties)
 
+        self.stdout.write(f"Creating support tickets (target: {TICKET_COUNT})...")
+        self._create_support_tickets(users)
+
         self.stdout.write(self.style.SUCCESS("Database filled successfully."))
 
     def _create_reference_data(self) -> tuple[list[Category], list[Amenity], list[PostalCode]]:
@@ -253,6 +277,12 @@ class Command(BaseCommand):
             is_agent = random.random() < 0.15
             is_tenant = random.random() < 0.7
             is_certified_agent = is_agent and random.random() < 0.7
+            # Small, fixed pool of support agents - not tied to any profile (unlike owner/agent/
+            # tenant, is_support is a plain flag), just enough that _create_support_tickets() has
+            # someone to auto-assign to. Set directly here, same as is_owner/is_agent below: this
+            # is a trusted management command, not the public serializer the model docstring warns
+            # against (see users/models/base_user.py).
+            is_support = random.random() < 0.08
 
             with transaction.atomic():
                 user = User.objects.create_user(
@@ -264,6 +294,7 @@ class Command(BaseCommand):
                     gender=random.choice(User.GenderChoices.values),
                     is_owner=is_owner,
                     is_agent=is_agent,
+                    is_support=is_support,
                 )
                 if is_owner:
                     OwnerProfile.objects.create(
@@ -508,6 +539,55 @@ class Command(BaseCommand):
                     user=random.choice(users) if random.random() < 0.6 else None,
                     search_query=random.choice(SEARCH_KEYWORDS),
                 )
+
+    def _create_support_tickets(self, users: list[User]) -> None:
+        """
+        Give the support app some data to demo too - an always-empty support inbox isn't useful to
+        show. Unlike users/properties, a ticket has no natural "top up to N" business meaning, so
+        this is a plain fixed-count loop with a per-item try/except (same pattern already used for
+        _create_bookings/_create_reviews) rather than common.utils.top_up() - a partial re-run
+        just adds a few more tickets, which is harmless.
+
+        Mirrors TicketViewSet.perform_create()'s auto-assignment idea (fewest open tickets per
+        agent) loosely: assigned_to is a random active support agent, and an unassigned ticket is
+        always left OPEN, since nothing is actually working it yet.
+        """
+        support_agents = [u for u in users if u.is_support and u.is_active]
+        openers = [u for u in users if not u.is_support]
+        if not openers:
+            return
+
+        for _ in range(TICKET_COUNT):
+            opener = random.choice(openers)
+            agent = random.choice(support_agents) if support_agents and random.random() < 0.8 else None
+            status = (
+                Ticket.StatusChoices.OPEN
+                if agent is None
+                else random.choices(
+                    [Ticket.StatusChoices.OPEN, Ticket.StatusChoices.IN_PROGRESS, Ticket.StatusChoices.CLOSED],
+                    weights=[2, 3, 5],
+                )[0]
+            )
+
+            try:
+                with transaction.atomic():
+                    ticket = Ticket.objects.create(
+                        user=opener,
+                        assigned_to=agent,
+                        subject=random.choice(TICKET_SUBJECTS),
+                        status=status,
+                    )
+                    Message.objects.create(
+                        ticket=ticket, sender=opener, body=random.choice(TICKET_OPENING_MESSAGES)
+                    )
+                    if agent is not None and status != Ticket.StatusChoices.OPEN:
+                        for _ in range(random.randint(1, 3)):
+                            sender = agent if random.random() < 0.5 else opener
+                            Message.objects.create(
+                                ticket=ticket, sender=sender, body=random.choice(TICKET_REPLY_MESSAGES)
+                            )
+            except Exception as exc:
+                self.stderr.write(self.style.WARNING(f"Skipping a support ticket: {exc}"))
 
     def _create_property_views(self, fake: Faker, users: list[User], properties: list[Property]) -> None:
         popular_properties = set(random.sample(properties, k=4))

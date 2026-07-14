@@ -97,6 +97,11 @@ class User(AbstractUser):
         default=False,
         help_text=_("Grants access to listing moderation features. Settable only via admin, never via a public serializer."),
     )
+    is_email_verified = models.BooleanField(
+        _("email verified"),
+        default=False,
+        help_text=_("Set once the user confirms their email via the verification link. Informational only for now."),
+    )
 
     objects = UserManager()
 
@@ -104,13 +109,11 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["phone"]
 
     class GenderChoices(models.TextChoices):
-        """
-
-        """
+        """Self-reported gender, shown on the user's profile."""
         MALE = 'male', _('Male')
         FEMALE = 'female', _('Female')
         OTHER = 'other', _('Other / Non-binary')
-        UNSPECIFIED = 'unspecified', _('Prefer not to say')  # По умолчанию
+        UNSPECIFIED = 'unspecified', _('Prefer not to say')  # Default
 
     gender = models.CharField(
         _("gender"),

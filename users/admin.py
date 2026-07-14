@@ -14,6 +14,7 @@ class UserAdmin(DjangoUserAdmin):
         "email", "first_name", "last_name", "phone",
         "is_owner", "is_agent", "is_support", "is_moderator", "is_staff",
     ]
+    list_filter = ["is_owner", "is_agent", "is_support", "is_moderator", "is_staff", "is_active"]
     search_fields = ["email", "phone"]
 
     fieldsets = (

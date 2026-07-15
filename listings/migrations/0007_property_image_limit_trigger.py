@@ -39,6 +39,8 @@ def drop_trigger(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = [
         ("listings", "0006_property_agent_cert_trigger"),
     ]

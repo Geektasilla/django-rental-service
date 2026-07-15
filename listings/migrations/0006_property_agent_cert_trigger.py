@@ -92,6 +92,8 @@ def drop_triggers(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = [
         ("listings", "0005_property_property_price_required_for_rent_type_and_more"),
         ("users", "0003_remove_user_avatar"),

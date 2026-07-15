@@ -1,5 +1,4 @@
 from rest_framework.routers import DefaultRouter
-
 from listings.views import AmenityViewSet, CategoryViewSet, PropertyViewSet
 
 app_name = "listings"

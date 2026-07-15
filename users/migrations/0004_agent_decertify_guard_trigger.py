@@ -49,6 +49,8 @@ def drop_trigger(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = [
         ("users", "0003_remove_user_avatar"),
         ("listings", "0006_property_agent_cert_trigger"),

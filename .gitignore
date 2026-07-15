@@ -9,7 +9,9 @@ __pycache__/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-media
+# property_photos/ is a curated fixture pool seed_data.py reads from - must stay tracked.
+# listings/ holds runtime uploads (PropertyImage) and seed_data-generated POA stand-ins - not tracked.
+media/listings/
 
 # If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
 # in your Git repository. Update and uncomment the following line accordingly.
@@ -378,7 +380,8 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,django,pycharm
 
-#other
-requirements-dev.txt
-tools/for_work
+# Other
 tools/
+.idea/
+*.xml
+*.md

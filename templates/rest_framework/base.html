@@ -1,0 +1,6 @@
+{% extends "rest_framework/base.html" %}
+
+{% block userlinks %}
+    <li>{% include "common/language_switcher.html" %}</li>
+    {{ block.super }}
+{% endblock %}

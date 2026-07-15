@@ -3,5 +3,21 @@ name = "django-rental-service"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "boto3>=1.43.40",
+    "celery>=5.6.3",
     "django>=6.0.6",
+    "django-cors-headers>=4.9.0",
+    "django-environ>=0.14.0",
+    "django-filter>=25.2",
+    "django-redis>=7.0.0",
+    "djangorestframework>=3.17.1",
+    "djangorestframework-simplejwt>=5.5.1",
+    "djangorestframework-stubs>=3.17.0",
+    "drf-spectacular>=0.30.0",
+    "env>=0.1.0",
+    "faker>=40.28.1",
+    "mysqlclient>=2.2.8",
+    "openai>=2.44.0",
+    "pillow>=12.3.0",
+    "psycopg2-binary>=2.9.12",
 ]

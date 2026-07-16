@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 from datetime import timedelta
 from pathlib import Path
+
+from celery.schedules import crontab
 from environ import Env
 from django.utils.translation import gettext_lazy as _
 
@@ -57,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     # As high as possible (django-cors-headers docs), before CommonMiddleware - needs to run
     # before anything that might return a response early (e.g. CommonMiddleware's redirects),
     # otherwise CORS headers wouldn't be attached to that early response.
@@ -156,6 +159,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+STORAGES = { "default": { "BACKEND": "django.core.files.storage.FileSystemStorage", }, "staticfiles": { "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage", }, }
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -235,6 +240,16 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=False)
+
+# Runs as a separate `celery -A config beat` process alongside the worker - the worker executes
+# tasks, beat only enqueues them on schedule. Both belong in the deployed stack (see Issue #23),
+# unlike an OS-level cron entry which wouldn't survive a container restart.
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-analytics-daily': {
+        'task': 'analytics.tasks.cleanup_analytics_task',
+        'schedule': crontab(hour=3, minute=0),
+    },
+}
 
 # LOGGING - critical failures (uncaught exceptions -> common.exceptions.exception_handler
 # below, plus any logger.exception() call anywhere, e.g. listings/services/moderation.py,

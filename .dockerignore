@@ -1,0 +1,38 @@
+# Secrets - never bake into the image, passed at runtime via env_file/environment
+.env
+
+# Version control
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/listings/
+
+# Tests / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+test_output*.txt
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Local docker/deploy files (not needed inside the image itself)
+docker-compose.yml
+tools/

@@ -306,6 +306,9 @@ class Command(BaseCommand):
                         languages="German, English",
                         is_verified=True,
                         verified_at=timezone.now(),
+                        verification_document=self._fake_document_file(
+                            f"seed_verification_{uuid.uuid4().hex[:8]}.txt"
+                        ),
                     )
                 if is_agent:
                     AgentProfile.objects.create(

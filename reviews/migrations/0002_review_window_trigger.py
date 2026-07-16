@@ -82,6 +82,8 @@ def drop_triggers(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = [
         ("reviews", "0001_initial"),
         ("bookings", "0006_booking_overlap_triggers"),

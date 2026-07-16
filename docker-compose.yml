@@ -1,0 +1,54 @@
+services:
+#  Контейнер для базы данных Redis.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+# Контейнер для основного веб-приложения Django (Gunicorn).
+  web:
+    build: .
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+    volumes:
+      - media:/app/media
+      - staticfiles:/app/staticfiles
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi --bind 0.0.0.0:8000"
+
+#  Контейнер для фоновых задач Celery (Celery Worker)
+  worker:
+    build: .
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+    volumes:
+      - media:/app/media
+    command: celery -A config worker -l info
+    
+# Контейнер для планировщика задач Celery (Celery Beat).
+  beat:
+    build: .
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+    command: celery -A config beat -l info
+
+volumes:
+  media:
+  staticfiles:

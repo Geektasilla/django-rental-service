@@ -94,6 +94,8 @@ def drop_triggers(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = [
         ("bookings", "0005_booking_booking_status_valid"),
     ]

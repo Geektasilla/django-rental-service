@@ -21,4 +21,6 @@ dependencies = [
     "openai>=2.44.0",
     "pillow>=12.3.0",
     "psycopg2-binary>=2.9.12",
+    "whitenoise==6.8.2",
+
 ]

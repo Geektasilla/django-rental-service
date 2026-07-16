@@ -2,24 +2,19 @@ from django.test import SimpleTestCase
 from django.urls import URLPattern, URLResolver, get_resolver
 from rest_framework.permissions import AllowAny
 
-# Views that are intentionally reachable without authentication. Adding a class here is a
-# deliberate security decision and should be called out in code review - it is not a place to
-# silence a failing test.
 ALLOWED_ANONYMOUS_VIEWS = {
-    "RegisterView",  # public self-registration
-    "TokenObtainPairView",  # login - must be reachable without a token
-    "TokenRefreshView",  # refresh - authenticates via the refresh token itself
-    "PopularSearchesView",  # anonymized, aggregate analytics for guests
-    "PasswordResetRequestView",  # anonymous by nature - the caller isn't logged in yet
-    "PasswordResetConfirmView",  # authenticates via the emailed uid+token, not a session
-    "EmailVerificationConfirmView",  # authenticates via the emailed uid+token, not a session
-    "HealthCheckView",  # infrastructure liveness probe - must be reachable by an orchestrator with no token
-    "CategoryViewSet",  # read-only taxonomy list - needed to populate a create-listing form before signup
-    "AmenityViewSet",  # read-only taxonomy list - needed to populate a create-listing form before signup
-    # SpectacularAPIView/SpectacularSwaggerView deliberately NOT listed here:
-    # SPECTACULAR_SETTINGS['SERVE_PERMISSIONS'] = [IsAdminUser] locks the docs to staff only
-    # (config/settings.py) - they must NOT show up as anonymously open, that would mean the
-    # override stopped applying.
+    "RegisterView",
+    "TokenObtainPairView",
+    "TokenRefreshView",
+    "PopularSearchesView",
+    "PasswordResetRequestView",
+    "PasswordResetConfirmView",
+    "EmailVerificationConfirmView",
+    "HealthCheckView",
+    "CategoryViewSet",
+    "AmenityViewSet",
+    "SpectacularAPIView",
+    "SpectacularSwaggerView",
 }
 
 
@@ -52,7 +47,7 @@ class PermissionAuditTests(SimpleTestCase):
         for view_class in iter_view_classes():
             permission_classes = getattr(view_class, "permission_classes", None)
             if permission_classes is None:
-                continue  # falls back to DEFAULT_PERMISSION_CLASSES (IsAuthenticated)
+                continue
             is_open = len(permission_classes) == 0 or AllowAny in permission_classes
             if is_open and view_class.__name__ not in ALLOWED_ANONYMOUS_VIEWS:
                 unexpected_open_views.append(view_class.__name__)

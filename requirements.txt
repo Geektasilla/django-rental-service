@@ -10,3 +10,4 @@ flake8
 mysqlclient
 django-filter
 django-redis
+whitenoise

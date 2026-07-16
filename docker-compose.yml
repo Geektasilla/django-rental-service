@@ -1,8 +1,9 @@
 services:
+#  Контейнер для базы данных Redis.
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-
+# Контейнер для основного веб-приложения Django (Gunicorn).
   web:
     build: .
     env_file: .env
@@ -22,6 +23,7 @@ services:
              python manage.py collectstatic --noinput &&
              gunicorn config.wsgi --bind 0.0.0.0:8000"
 
+#  Контейнер для фоновых задач Celery (Celery Worker)
   worker:
     build: .
     env_file: .env
@@ -34,7 +36,8 @@ services:
     volumes:
       - media:/app/media
     command: celery -A config worker -l info
-
+    
+# Контейнер для планировщика задач Celery (Celery Beat).
   beat:
     build: .
     env_file: .env

@@ -19,6 +19,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from common.views import HealthCheckView
 
@@ -29,6 +30,7 @@ admin.site.index_title = _('Administration')
 
 urlpatterns = [
     # SYSTEM
+    path('', RedirectView.as_view(url='api/schema/swagger-ui/', permanent=False)),
     path('admin/', admin.site.urls),
     path('health/', HealthCheckView.as_view(), name='health-check'),
     path('i18n/', include('django.conf.urls.i18n')),

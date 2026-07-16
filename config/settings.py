@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     # As high as possible (django-cors-headers docs), before CommonMiddleware - needs to run
     # before anything that might return a response early (e.g. CommonMiddleware's redirects),
     # otherwise CORS headers wouldn't be attached to that early response.
@@ -157,6 +158,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = { "default": { "BACKEND": "django.core.files.storage.FileSystemStorage", }, "staticfiles": { "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage", }, }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

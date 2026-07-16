@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from common.mixins import ActionPermissionsMixin
 from common.utils import visible_to_participants
-from support.models import Message, Ticket
+from support.models import Ticket
 from support.permissions import IsAssignedSupportAgent
 from support.serializers import MessageSerializer, TicketSerializer
 from users.models import User
@@ -40,7 +40,9 @@ class TicketViewSet(
         if getattr(self, "swagger_fake_view", False):
             return Ticket.objects.none()
         queryset = Ticket.objects.select_related("user", "assigned_to")
-        return visible_to_participants(queryset, self.request.user, "user", "assigned_to")
+        return visible_to_participants(
+            queryset, self.request.user, "user", "assigned_to"
+        )
 
     def perform_create(self, serializer: TicketSerializer) -> None:
         """
@@ -81,7 +83,9 @@ class TicketViewSet(
 
         message_qs = ticket.messages.select_related("sender")
         page = self.paginate_queryset(message_qs)
-        serializer = MessageSerializer(page if page is not None else message_qs, many=True)
+        serializer = MessageSerializer(
+            page if page is not None else message_qs, many=True
+        )
         if page is not None:
             return self.get_paginated_response(serializer.data)
         return Response(serializer.data)

@@ -16,12 +16,22 @@ urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", TokenObtainPairView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
-
     # Refresh token
     path("login/refresh/", TokenRefreshView.as_view(), name="login-refresh"),
-
     # Password reset and verification
-    path("password-reset/request/", PasswordResetRequestView.as_view(), name="password-reset-request"),
-    path("password-reset/confirm/", PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
-    path("email-verification/confirm/", EmailVerificationConfirmView.as_view(), name="email-verification-confirm"),
+    path(
+        "password-reset/request/",
+        PasswordResetRequestView.as_view(),
+        name="password-reset-request",
+    ),
+    path(
+        "password-reset/confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="password-reset-confirm",
+    ),
+    path(
+        "email-verification/confirm/",
+        EmailVerificationConfirmView.as_view(),
+        name="email-verification-confirm",
+    ),
 ]

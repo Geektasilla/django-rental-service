@@ -6,7 +6,9 @@ from django.core.mail import send_mail
 logger = logging.getLogger(__name__)
 
 
-def send_email(subject: str, message: str, to: str, swallow_errors: bool = True) -> bool:
+def send_email(
+    subject: str, message: str, to: str, swallow_errors: bool = True
+) -> bool:
     """
     Send a single email.
 
@@ -22,7 +24,12 @@ def send_email(subject: str, message: str, to: str, swallow_errors: bool = True)
         a failure raises instead of returning.
     """
     try:
-        send_mail(subject=subject, message=message, from_email=settings.DEFAULT_FROM_EMAIL, recipient_list=[to])
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[to],
+        )
         return True
     except Exception:
         logger.exception("Failed to send email (subject=%r) to %s.", subject, to)

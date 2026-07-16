@@ -11,7 +11,12 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from bookings.models import Booking, BookingStatusChoices
-from bookings.permissions import CanCancelBooking, IsBookingPropertyOwner, IsBookingTenant, OwnerIsVerifiedToConfirm
+from bookings.permissions import (
+    CanCancelBooking,
+    IsBookingPropertyOwner,
+    IsBookingTenant,
+    OwnerIsVerifiedToConfirm,
+)
 from bookings.serializers import BookingSerializer
 from common.mixins import ActionPermissionsMixin
 from common.utils import as_drf_validation_error, visible_to_participants
@@ -58,7 +63,9 @@ class BookingViewSet(
         if getattr(self, "swagger_fake_view", False):
             return Booking.objects.none()
         queryset = Booking.objects.select_related("property__owner", "tenant")
-        return visible_to_participants(queryset, self.request.user, "tenant", "property__owner")
+        return visible_to_participants(
+            queryset, self.request.user, "tenant", "property__owner"
+        )
 
     @action(detail=True, methods=["post"])
     def confirm(self, request: Request, pk: str | None = None) -> Response:
@@ -138,7 +145,10 @@ class BookingViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if booking.status in (BookingStatusChoices.BOOKED, BookingStatusChoices.PAID):
-            if date.today() + timedelta(days=CANCELLATION_NOTICE_DAYS) >= booking.start_date:
+            if (
+                date.today() + timedelta(days=CANCELLATION_NOTICE_DAYS)
+                >= booking.start_date
+            ):
                 return Response(
                     {
                         "detail": _(

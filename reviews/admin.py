@@ -10,4 +10,8 @@ class ReviewAdmin(admin.ModelAdmin):
     search_fields = ["booking__property__title", "booking__tenant__email"]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("booking__property", "booking__tenant")
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("booking__property", "booking__tenant")
+        )

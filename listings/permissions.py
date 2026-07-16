@@ -8,7 +8,9 @@ from listings.models import Property
 class IsPropertyOwner(BasePermission):
     """Object-level permission: only the listing's own owner/agent (Property.owner) may act on it."""
 
-    def has_object_permission(self, request: Request, view: APIView, obj: Property) -> bool:
+    def has_object_permission(
+        self, request: Request, view: APIView, obj: Property
+    ) -> bool:
         """
         :param request: the incoming DRF request; ``request.user`` must be authenticated.
         :param view: the view being accessed.

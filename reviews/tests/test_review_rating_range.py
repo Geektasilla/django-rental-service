@@ -30,7 +30,9 @@ class ReviewRatingRangeTests(TestCase):
         )
 
     def test_rating_within_range_allowed(self) -> None:
-        review = Review.objects.create(booking=self.booking, rating=5, comment="Great stay.")
+        review = Review.objects.create(
+            booking=self.booking, rating=5, comment="Great stay."
+        )
         self.assertEqual(review.rating, 5)
 
     def test_rating_below_one_blocked_through_normal_save(self) -> None:
@@ -41,7 +43,11 @@ class ReviewRatingRangeTests(TestCase):
         with self.assertRaises(ValidationError):
             Review.objects.create(booking=self.booking, rating=6, comment="Too high.")
 
-    def test_constraint_blocks_out_of_range_rating_bypassing_clean_via_bulk_create(self) -> None:
-        out_of_range_review = Review(booking=self.booking, rating=6, comment="Bypassing clean().")
+    def test_constraint_blocks_out_of_range_rating_bypassing_clean_via_bulk_create(
+        self,
+    ) -> None:
+        out_of_range_review = Review(
+            booking=self.booking, rating=6, comment="Bypassing clean()."
+        )
         with self.assertRaises(IntegrityError):
             Review.objects.bulk_create([out_of_range_review])

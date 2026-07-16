@@ -14,8 +14,12 @@ class PropertyFilterTests(TestCase):
 
     def setUp(self) -> None:
         owner = make_owner()
-        self.cheap_daily = make_property(owner, title="Cheap daily", price_per_day="30.00", rooms_count=1)
-        self.expensive_daily = make_property(owner, title="Expensive daily", price_per_day="200.00", rooms_count=4)
+        self.cheap_daily = make_property(
+            owner, title="Cheap daily", price_per_day="30.00", rooms_count=1
+        )
+        self.expensive_daily = make_property(
+            owner, title="Expensive daily", price_per_day="200.00", rooms_count=4
+        )
         self.long_term = make_property(
             owner,
             title="Long-term flat",

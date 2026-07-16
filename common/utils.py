@@ -15,10 +15,14 @@ def as_drf_validation_error(exc: DjangoValidationError) -> serializers.Validatio
     :param exc: a Django-core ValidationError raised by Model.full_clean() (e.g. Property.clean()).
     :return: an equivalent DRF ValidationError, preserving field-level detail when available.
     """
-    return serializers.ValidationError(exc.message_dict if hasattr(exc, "message_dict") else exc.messages)
+    return serializers.ValidationError(
+        exc.message_dict if hasattr(exc, "message_dict") else exc.messages
+    )
 
 
-def visible_to_participants(queryset: QuerySet, user: AbstractBaseUser, *lookups: str) -> QuerySet:
+def visible_to_participants(
+    queryset: QuerySet, user: AbstractBaseUser, *lookups: str
+) -> QuerySet:
     """
     :param queryset: base queryset, already `select_related()`/etc. as needed by the caller.
     :param user: the requesting user; staff bypasses filtering and sees every row.

@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class ListingsConfig(AppConfig):
-    name = 'listings'
+    name = "listings"
     verbose_name = _("Listings")
 
     def ready(self) -> None:

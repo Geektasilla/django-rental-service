@@ -11,24 +11,65 @@ class UserAdmin(DjangoUserAdmin):
 
     ordering = ["email"]
     list_display = [
-        "email", "first_name", "last_name", "phone",
-        "is_owner", "is_agent", "is_support", "is_moderator", "is_staff",
+        "email",
+        "first_name",
+        "last_name",
+        "phone",
+        "is_owner",
+        "is_agent",
+        "is_support",
+        "is_moderator",
+        "is_staff",
     ]
-    list_filter = ["is_owner", "is_agent", "is_support", "is_moderator", "is_staff", "is_active"]
+    list_filter = [
+        "is_owner",
+        "is_agent",
+        "is_support",
+        "is_moderator",
+        "is_staff",
+        "is_active",
+    ]
     search_fields = ["email", "phone"]
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        (_("Personal info"), {"fields": ("first_name", "last_name", "phone", "gender")}),
-        (_("Roles"), {"fields": ("is_owner", "is_agent", "is_support", "is_moderator")}),
-        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (
+            _("Personal info"),
+            {"fields": ("first_name", "last_name", "phone", "gender")},
+        ),
+        (
+            _("Roles"),
+            {"fields": ("is_owner", "is_agent", "is_support", "is_moderator")},
+        ),
+        (
+            _("Permissions"),
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
     add_fieldsets = (
-        (None, {
-            "classes": ("wide",),
-            "fields": ("email", "first_name", "last_name", "phone", "password", "password2"), # Добавлены first_name и last_name
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "email",
+                    "first_name",
+                    "last_name",
+                    "phone",
+                    "password",
+                    "password2",
+                ),  # Добавлены first_name и last_name
+            },
+        ),
     )
 
 
@@ -56,13 +97,28 @@ class TenantProfileAdmin(UserNameMixin, admin.ModelAdmin):
 
 @admin.register(OwnerProfile)
 class OwnerProfileAdmin(UserNameMixin, admin.ModelAdmin):
-    list_display = ["user", "first_name", "last_name", "company_name", "is_company", "is_verified", "status"]
+    list_display = [
+        "user",
+        "first_name",
+        "last_name",
+        "company_name",
+        "is_company",
+        "is_verified",
+        "status",
+    ]
     list_filter = ["is_company", "is_verified", "status"]
     search_fields = ["user__email", "company_name", "tax_id"]
 
 
 @admin.register(AgentProfile)
 class AgentProfileAdmin(UserNameMixin, admin.ModelAdmin):
-    list_display = ["user", "first_name", "last_name", "company_name", "is_certified", "status"]
+    list_display = [
+        "user",
+        "first_name",
+        "last_name",
+        "company_name",
+        "is_certified",
+        "status",
+    ]
     list_filter = ["is_certified", "status"]
     search_fields = ["user__email", "company_name", "license_number"]

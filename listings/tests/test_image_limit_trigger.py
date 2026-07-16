@@ -33,14 +33,22 @@ class ImageLimitTriggerTests(TestCase):
         self.owner = make_owner()
         self.property = make_property(self.owner)
         for i in range(10):
-            PropertyImage.objects.create(property=self.property, image=_fake_image_file(f"{i}.jpg"))
+            PropertyImage.objects.create(
+                property=self.property, image=_fake_image_file(f"{i}.jpg")
+            )
 
     def test_clean_blocks_the_11th_image_through_normal_save(self) -> None:
         with self.assertRaises(Exception):
-            PropertyImage.objects.create(property=self.property, image=_fake_image_file("11th.jpg"))
+            PropertyImage.objects.create(
+                property=self.property, image=_fake_image_file("11th.jpg")
+            )
 
-    def test_trigger_blocks_the_11th_image_bypassing_clean_via_bulk_create(self) -> None:
-        eleventh_image = PropertyImage(property=self.property, image=_fake_image_file("11th.jpg"))
+    def test_trigger_blocks_the_11th_image_bypassing_clean_via_bulk_create(
+        self,
+    ) -> None:
+        eleventh_image = PropertyImage(
+            property=self.property, image=_fake_image_file("11th.jpg")
+        )
         with self.assertRaises(IntegrityError):
             PropertyImage.objects.bulk_create([eleventh_image])
 
@@ -52,7 +60,9 @@ class MaxPropertyImagesCanaryTest(TestCase):
     read Python settings). If this fails, someone changed one without the other.
     """
 
-    def test_max_property_images_matches_the_hardcoded_db_trigger_threshold(self) -> None:
+    def test_max_property_images_matches_the_hardcoded_db_trigger_threshold(
+        self,
+    ) -> None:
         self.assertEqual(
             settings.MAX_PROPERTY_IMAGES,
             10,

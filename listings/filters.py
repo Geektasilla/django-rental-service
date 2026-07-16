@@ -17,7 +17,9 @@ class PropertyFilter(filters.FilterSet):
     price_max = filters.NumberFilter(method="filter_price_max")
     rooms_min = filters.NumberFilter(field_name="rooms_count", lookup_expr="gte")
     rooms_max = filters.NumberFilter(field_name="rooms_count", lookup_expr="lte")
-    city = filters.CharFilter(field_name="location__address__postal_code__city", lookup_expr="iexact")
+    city = filters.CharFilter(
+        field_name="location__address__postal_code__city", lookup_expr="iexact"
+    )
 
     class Meta:
         model = Property
@@ -30,7 +32,9 @@ class PropertyFilter(filters.FilterSet):
         :param value: minimum price (inclusive) in EUR.
         :return: listings whose active price field is at least ``value``.
         """
-        return queryset.filter(Q(price_per_day__gte=value) | Q(price_per_month__gte=value))
+        return queryset.filter(
+            Q(price_per_day__gte=value) | Q(price_per_month__gte=value)
+        )
 
     def filter_price_max(self, queryset: QuerySet, name: str, value) -> QuerySet:
         """
@@ -39,4 +43,6 @@ class PropertyFilter(filters.FilterSet):
         :param value: maximum price (inclusive) in EUR.
         :return: listings whose active price field is at most ``value``.
         """
-        return queryset.filter(Q(price_per_day__lte=value) | Q(price_per_month__lte=value))
+        return queryset.filter(
+            Q(price_per_day__lte=value) | Q(price_per_month__lte=value)
+        )

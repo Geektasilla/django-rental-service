@@ -8,7 +8,9 @@ from support.models import Ticket
 class IsAssignedSupportAgent(BasePermission):
     """Object-level permission: only the ticket's assigned support agent may change its status."""
 
-    def has_object_permission(self, request: Request, view: APIView, obj: Ticket) -> bool:
+    def has_object_permission(
+        self, request: Request, view: APIView, obj: Ticket
+    ) -> bool:
         """
         :param request: the incoming DRF request; ``request.user`` must be authenticated.
         :param view: the view being accessed.

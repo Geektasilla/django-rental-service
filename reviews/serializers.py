@@ -13,7 +13,9 @@ class ReviewSerializer(serializers.ModelSerializer):
     """
 
     tenant = serializers.PrimaryKeyRelatedField(source="booking.tenant", read_only=True)
-    property = serializers.PrimaryKeyRelatedField(source="booking.property", read_only=True)
+    property = serializers.PrimaryKeyRelatedField(
+        source="booking.property", read_only=True
+    )
 
     class Meta:
         model = Review

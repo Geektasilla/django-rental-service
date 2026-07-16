@@ -12,10 +12,14 @@ def send_password_reset_email(user: User, uid: str, token: str) -> bool:
     :param token: password_reset_token_generator token for this user.
     :return: True if the email was sent, False if sending failed.
     """
-    reset_link = f"{settings.FRONTEND_URL}/password-reset/confirm?uid={uid}&token={token}"
+    reset_link = (
+        f"{settings.FRONTEND_URL}/password-reset/confirm?uid={uid}&token={token}"
+    )
     return send_email(
         subject=str(_("Reset your password")),
-        message=str(_("Use this link to reset your password: %(link)s") % {"link": reset_link}),
+        message=str(
+            _("Use this link to reset your password: %(link)s") % {"link": reset_link}
+        ),
         to=user.email,
     )
 
@@ -27,9 +31,13 @@ def send_email_verification_email(user: User, uid: str, token: str) -> bool:
     :param token: email_verification_token_generator token for this user.
     :return: True if the email was sent, False if sending failed.
     """
-    verify_link = f"{settings.FRONTEND_URL}/email-verification/confirm?uid={uid}&token={token}"
+    verify_link = (
+        f"{settings.FRONTEND_URL}/email-verification/confirm?uid={uid}&token={token}"
+    )
     return send_email(
         subject=str(_("Verify your email address")),
-        message=str(_("Use this link to verify your email: %(link)s") % {"link": verify_link}),
+        message=str(
+            _("Use this link to verify your email: %(link)s") % {"link": verify_link}
+        ),
         to=user.email,
     )

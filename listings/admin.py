@@ -55,16 +55,33 @@ class PropertyImageInline(admin.TabularInline):
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
     list_display = [
-        "title", "owner", "category", "rent_type", "price_per_day", "price_per_month",
-        "is_active", "moderation_status", "listed_as", "views_count", "created_at",
+        "title",
+        "owner",
+        "category",
+        "rent_type",
+        "price_per_day",
+        "price_per_month",
+        "is_active",
+        "moderation_status",
+        "listed_as",
+        "views_count",
+        "created_at",
     ]
-    list_filter = ["rent_type", "is_active", "moderation_status", "category", "listed_as", "created_at"]
+    list_filter = [
+        "rent_type",
+        "is_active",
+        "moderation_status",
+        "category",
+        "listed_as",
+        "created_at",
+    ]
     search_fields = ["title", "description", "owner__email"]
     inlines = [PropertyLocationInline, PropertyImageInline]
 
     def get_queryset(self, request) -> QuerySet:
         return (
-            super().get_queryset(request)
+            super()
+            .get_queryset(request)
             .select_related("owner", "category")
             .annotate(views_count=Count("views"))
         )
@@ -87,9 +104,21 @@ class ModerationLogAdmin(admin.ModelAdmin):
 
 @admin.register(PropertyDeletionLog)
 class PropertyDeletionLogAdmin(admin.ModelAdmin):
-    list_display = ["property_title", "property_id", "deleted_by", "ip_address", "deleted_at"]
+    list_display = [
+        "property_title",
+        "property_id",
+        "deleted_by",
+        "ip_address",
+        "deleted_at",
+    ]
     search_fields = ["property_title", "deleted_by__email"]
-    readonly_fields = ["property_id", "property_title", "deleted_by", "ip_address", "deleted_at"]
+    readonly_fields = [
+        "property_id",
+        "property_title",
+        "deleted_by",
+        "ip_address",
+        "deleted_at",
+    ]
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("deleted_by")

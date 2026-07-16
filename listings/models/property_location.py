@@ -19,7 +19,9 @@ class PropertyLocation(models.Model):
         on_delete=models.PROTECT,
         related_name="property_locations",
     )
-    apartment_number = models.CharField(_("apartment number"), max_length=20, blank=True)
+    apartment_number = models.CharField(
+        _("apartment number"), max_length=20, blank=True
+    )
     floor_info = models.CharField(
         _("floor info"),
         max_length=50,

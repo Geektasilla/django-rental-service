@@ -6,7 +6,9 @@ from django.utils.translation import gettext_lazy as _
 
 phone_validator = RegexValidator(
     regex=r"^\+?[1-9]\d{7,14}$",
-    message=_("Enter a valid phone number in international format, e.g. +491701234567."),
+    message=_(
+        "Enter a valid phone number in international format, e.g. +491701234567."
+    ),
 )
 
 
@@ -32,7 +34,9 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_user(self, email: str, password: str | None = None, **extra_fields) -> "User":
+    def create_user(
+        self, email: str, password: str | None = None, **extra_fields
+    ) -> "User":
         """
         Create and save a regular (non-staff, non-superuser) user.
 
@@ -45,7 +49,9 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email: str, password: str | None = None, **extra_fields) -> "User":
+    def create_superuser(
+        self, email: str, password: str | None = None, **extra_fields
+    ) -> "User":
         """
         Create and save a superuser with is_staff and is_superuser both True.
 
@@ -90,17 +96,23 @@ class User(AbstractUser):
     is_support = models.BooleanField(
         _("support status"),
         default=False,
-        help_text=_("Grants access to support ticket features. Settable only via admin, never via a public serializer."),
+        help_text=_(
+            "Grants access to support ticket features. Settable only via admin, never via a public serializer."
+        ),
     )
     is_moderator = models.BooleanField(
         _("moderator status"),
         default=False,
-        help_text=_("Grants access to listing moderation features. Settable only via admin, never via a public serializer."),
+        help_text=_(
+            "Grants access to listing moderation features. Settable only via admin, never via a public serializer."
+        ),
     )
     is_email_verified = models.BooleanField(
         _("email verified"),
         default=False,
-        help_text=_("Set once the user confirms their email via the verification link. Informational only for now."),
+        help_text=_(
+            "Set once the user confirms their email via the verification link. Informational only for now."
+        ),
     )
 
     objects = UserManager()
@@ -110,10 +122,11 @@ class User(AbstractUser):
 
     class GenderChoices(models.TextChoices):
         """Self-reported gender, shown on the user's profile."""
-        MALE = 'male', _('Male')
-        FEMALE = 'female', _('Female')
-        OTHER = 'other', _('Other / Non-binary')
-        UNSPECIFIED = 'unspecified', _('Prefer not to say')  # Default
+
+        MALE = "male", _("Male")
+        FEMALE = "female", _("Female")
+        OTHER = "other", _("Other / Non-binary")
+        UNSPECIFIED = "unspecified", _("Prefer not to say")  # Default
 
     gender = models.CharField(
         _("gender"),
@@ -128,7 +141,9 @@ class User(AbstractUser):
         constraints = [
             # Hardcoded, not GenderChoices.values: nested TextChoices isn't visible from Meta.
             models.CheckConstraint(
-                condition=models.Q(gender__in=["male", "female", "other", "unspecified"]),
+                condition=models.Q(
+                    gender__in=["male", "female", "other", "unspecified"]
+                ),
                 name="user_gender_valid",
             ),
         ]

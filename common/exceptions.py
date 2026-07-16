@@ -29,4 +29,7 @@ def exception_handler(exc: Exception, context: dict) -> Response:
         return response
 
     logger.exception("Unhandled exception in %s: %s", context.get("view"), exc)
-    return Response({"detail": _("Internal server error.")}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response(
+        {"detail": _("Internal server error.")},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )

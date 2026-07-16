@@ -66,7 +66,9 @@ class Property(TimeStampedModel):
         null=True,
         blank=True,
         validators=[MinValueValidator(Decimal("0.01"))],
-        help_text=_("Required for DAILY listings. Price in EUR - this platform only serves the German market."),
+        help_text=_(
+            "Required for DAILY listings. Price in EUR - this platform only serves the German market."
+        ),
     )
     price_per_month = models.DecimalField(
         _("price per month (EUR)"),
@@ -87,7 +89,9 @@ class Property(TimeStampedModel):
     is_active = models.BooleanField(
         _("is active"),
         default=True,
-        help_text=_("Toggled by the owner to show/hide the listing from search results."),
+        help_text=_(
+            "Toggled by the owner to show/hide the listing from search results."
+        ),
     )
 
     moderation_status = models.CharField(
@@ -95,7 +99,9 @@ class Property(TimeStampedModel):
         max_length=20,
         choices=ModerationStatusChoices.choices,
         default=ModerationStatusChoices.PENDING,
-        help_text=_("Result of automated + human review of this listing's text and photos."),
+        help_text=_(
+            "Result of automated + human review of this listing's text and photos."
+        ),
     )
 
     listed_as = models.CharField(
@@ -103,14 +109,18 @@ class Property(TimeStampedModel):
         max_length=20,
         choices=ListedAsChoices.choices,
         default=ListedAsChoices.OWNER,
-        help_text=_("Whether the owner is listing their own property, or an agent acting on a client's behalf."),
+        help_text=_(
+            "Whether the owner is listing their own property, or an agent acting on a client's behalf."
+        ),
     )
     power_of_attorney_document = models.FileField(
         _("power of attorney document"),
         upload_to="listings/power_of_attorney/",
         null=True,
         blank=True,
-        help_text=_("Required when listed_as=AGENT; proves authorization to list this specific property."),
+        help_text=_(
+            "Required when listed_as=AGENT; proves authorization to list this specific property."
+        ),
     )
 
     class Meta:
@@ -121,15 +131,19 @@ class Property(TimeStampedModel):
             # Matches the exact filter PropertyViewSet.get_queryset() runs on every guest/anonymous
             # request (is_active=True, moderation_status=APPROVED) - without it that query does a
             # full table scan once the table is larger than the current seed-data size.
-            models.Index(fields=["is_active", "moderation_status"], name="property_visible_idx"),
+            models.Index(
+                fields=["is_active", "moderation_status"], name="property_visible_idx"
+            ),
         ]
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(price_per_day__isnull=True) | models.Q(price_per_day__gt=0),
+                condition=models.Q(price_per_day__isnull=True)
+                | models.Q(price_per_day__gt=0),
                 name="property_price_per_day_positive",
             ),
             models.CheckConstraint(
-                condition=models.Q(price_per_month__isnull=True) | models.Q(price_per_month__gt=0),
+                condition=models.Q(price_per_month__isnull=True)
+                | models.Q(price_per_month__gt=0),
                 name="property_price_per_month_positive",
             ),
             models.CheckConstraint(
@@ -141,7 +155,9 @@ class Property(TimeStampedModel):
                 name="property_rent_type_valid",
             ),
             models.CheckConstraint(
-                condition=models.Q(moderation_status__in=ModerationStatusChoices.values),
+                condition=models.Q(
+                    moderation_status__in=ModerationStatusChoices.values
+                ),
                 name="property_moderation_status_valid",
             ),
             models.CheckConstraint(
@@ -152,8 +168,13 @@ class Property(TimeStampedModel):
             # bulk_create()/bulk_update()/.update() can't bypass them.
             models.CheckConstraint(
                 condition=(
-                    models.Q(rent_type=RentTypeChoices.DAILY, price_per_day__isnull=False)
-                    | models.Q(rent_type=RentTypeChoices.LONG_TERM, price_per_month__isnull=False)
+                    models.Q(
+                        rent_type=RentTypeChoices.DAILY, price_per_day__isnull=False
+                    )
+                    | models.Q(
+                        rent_type=RentTypeChoices.LONG_TERM,
+                        price_per_month__isnull=False,
+                    )
                 ),
                 name="property_price_required_for_rent_type",
             ),
@@ -192,8 +213,13 @@ class Property(TimeStampedModel):
         """
         if self.rent_type == self.RentTypeChoices.DAILY and self.price_per_day is None:
             raise ValidationError(_("price_per_day is required for DAILY listings."))
-        if self.rent_type == self.RentTypeChoices.LONG_TERM and self.price_per_month is None:
-            raise ValidationError(_("price_per_month is required for LONG_TERM listings."))
+        if (
+            self.rent_type == self.RentTypeChoices.LONG_TERM
+            and self.price_per_month is None
+        ):
+            raise ValidationError(
+                _("price_per_month is required for LONG_TERM listings.")
+            )
 
         if self.owner_id is None:
             return
@@ -201,17 +227,25 @@ class Property(TimeStampedModel):
         if self.listed_as == self.ListedAsChoices.AGENT:
             if not self.power_of_attorney_document:
                 raise ValidationError(
-                    _("A power of attorney document is required when listing as an agent.")
+                    _(
+                        "A power of attorney document is required when listing as an agent."
+                    )
                 )
             agent_profile = getattr(self.owner, "agent_profile", None)
-            if not (self.owner.is_agent and agent_profile and agent_profile.is_certified):
+            if not (
+                self.owner.is_agent and agent_profile and agent_profile.is_certified
+            ):
                 raise ValidationError(
-                    _("Only a certified agent may list a property on a client's behalf.")
+                    _(
+                        "Only a certified agent may list a property on a client's behalf."
+                    )
                 )
         else:
             if not self.owner.is_owner:
                 raise ValidationError(
-                    _("Only a user with owner status may list a property as themselves.")
+                    _(
+                        "Only a user with owner status may list a property as themselves."
+                    )
                 )
 
     def save(self, *args, **kwargs) -> None:

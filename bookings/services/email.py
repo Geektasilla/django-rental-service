@@ -15,7 +15,9 @@ def send_new_booking_request_email(booking) -> bool:
     :return: True if the email was sent.
     """
     return send_email(
-        subject=str(_("New booking request for %(title)s") % {"title": booking.property.title}),
+        subject=str(
+            _("New booking request for %(title)s") % {"title": booking.property.title}
+        ),
         message=str(
             _(
                 "%(tenant)s requested to book %(title)s from %(start)s to %(end)s. "

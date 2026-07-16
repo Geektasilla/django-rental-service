@@ -5,7 +5,9 @@ from analytics.models import SearchHistory
 from common.tests.factories import make_tenant
 
 
-@override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
+@override_settings(
+    CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+)
 class PopularSearchesTests(TestCase):
     """
     PopularSearchesView is AllowAny and aggregates SearchHistory across every user and guest - the
@@ -25,9 +27,13 @@ class PopularSearchesTests(TestCase):
         response = self.client.get("/api/v1/analytics/popular-searches/")
         self.assertEqual(response.status_code, 200, response.data)
 
-    def test_aggregates_counts_across_users_and_guests_ordered_by_frequency(self) -> None:
+    def test_aggregates_counts_across_users_and_guests_ordered_by_frequency(
+        self,
+    ) -> None:
         response = self.client.get("/api/v1/analytics/popular-searches/")
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         by_query = {row["search_query"]: row["count"] for row in results}
         self.assertEqual(by_query["berlin"], 2)
         self.assertEqual(by_query["munich"], 1)
@@ -36,6 +42,8 @@ class PopularSearchesTests(TestCase):
 
     def test_response_never_exposes_per_user_identity(self) -> None:
         response = self.client.get("/api/v1/analytics/popular-searches/")
-        results = response.data["results"] if "results" in response.data else response.data
+        results = (
+            response.data["results"] if "results" in response.data else response.data
+        )
         for row in results:
             self.assertEqual(set(row.keys()), {"search_query", "count"})

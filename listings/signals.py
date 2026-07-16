@@ -37,7 +37,10 @@ def _notify_moderators_of_pending_listing(instance: Property) -> None:
         (
             Notification(
                 user=moderator,
-                message=str(_("New listing pending review: %(title)s") % {"title": instance.title}),
+                message=str(
+                    _("New listing pending review: %(title)s")
+                    % {"title": instance.title}
+                ),
             )
             for moderator in moderators
         ),
@@ -70,12 +73,17 @@ def moderate_property_text(sender, instance: Property, created: bool, **kwargs) 
         Property.objects.filter(pk=instance.pk).update(
             moderation_status=Property.ModerationStatusChoices.REJECTED,
         )
-    elif created and instance.moderation_status == Property.ModerationStatusChoices.PENDING:
+    elif (
+        created
+        and instance.moderation_status == Property.ModerationStatusChoices.PENDING
+    ):
         _notify_moderators_of_pending_listing(instance)
 
 
 @receiver(post_save, sender=PropertyImage)
-def moderate_property_image(sender, instance: PropertyImage, created: bool, **kwargs) -> None:
+def moderate_property_image(
+    sender, instance: PropertyImage, created: bool, **kwargs
+) -> None:
     """
     Check a newly uploaded PropertyImage and auto-reject the parent listing if flagged.
     Only runs once per upload; never auto-approves.

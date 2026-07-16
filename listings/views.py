@@ -16,7 +16,14 @@ from analytics.models import PropertyView, SearchHistory
 from common.mixins import ActionPermissionsMixin
 from common.utils import as_drf_validation_error, get_client_ip
 from listings.filters import PropertyFilter
-from listings.models import Amenity, Category, ModerationLog, Property, PropertyDeletionLog, PropertyImage
+from listings.models import (
+    Amenity,
+    Category,
+    ModerationLog,
+    Property,
+    PropertyDeletionLog,
+    PropertyImage,
+)
 from listings.permissions import IsPropertyOwner
 from listings.serializers import (
     AmenitySerializer,
@@ -29,7 +36,13 @@ from reviews.models import Review
 from reviews.serializers import ReviewSerializer
 from users.permissions import IsModerator, IsOwnerOrAgent
 
-_MODIFY_ACTIONS = ["update", "partial_update", "destroy", "upload_image", "delete_image"]
+_MODIFY_ACTIONS = [
+    "update",
+    "partial_update",
+    "destroy",
+    "upload_image",
+    "delete_image",
+]
 
 
 class CategoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -81,14 +94,21 @@ class PropertyViewSet(ActionPermissionsMixin, viewsets.ModelViewSet):
             annotated with a ``popularity`` count (distinct views + distinct reviews).
         """
         queryset = (
-            Property.objects.select_related("owner", "category", "location__address__postal_code")
+            Property.objects.select_related(
+                "owner", "category", "location__address__postal_code"
+            )
             .prefetch_related("images", "amenities")
-            .annotate(popularity=Count("views", distinct=True) + Count("bookings__review", distinct=True))
+            .annotate(
+                popularity=Count("views", distinct=True)
+                + Count("bookings__review", distinct=True)
+            )
         )
         user = self.request.user
         if user.is_authenticated and (user.is_staff or user.is_moderator):
             return queryset
-        visible = Q(is_active=True, moderation_status=Property.ModerationStatusChoices.APPROVED)
+        visible = Q(
+            is_active=True, moderation_status=Property.ModerationStatusChoices.APPROVED
+        )
         if user.is_authenticated:
             visible |= Q(owner=user)
         return queryset.filter(visible).distinct()
@@ -144,7 +164,12 @@ class PropertyViewSet(ActionPermissionsMixin, viewsets.ModelViewSet):
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["post"], parser_classes=[MultiPartParser], url_path="images")
+    @action(
+        detail=True,
+        methods=["post"],
+        parser_classes=[MultiPartParser],
+        url_path="images",
+    )
     def upload_image(self, request: Request, pk: str | None = None) -> Response:
         """
         Add a photo to this listing (subject to Property/PropertyImage validation, e.g. MAX_PROPERTY_IMAGES).
@@ -165,13 +190,19 @@ class PropertyViewSet(ActionPermissionsMixin, viewsets.ModelViewSet):
             raise as_drf_validation_error(exc)
         except IntegrityError:
             return Response(
-                {"detail": _("A property cannot have more than the maximum number of images.")},
+                {
+                    "detail": _(
+                        "A property cannot have more than the maximum number of images."
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["delete"], url_path=r"images/(?P<image_id>\d+)")
-    def delete_image(self, request: Request, pk: str | None = None, image_id: str | None = None) -> Response:
+    def delete_image(
+        self, request: Request, pk: str | None = None, image_id: str | None = None
+    ) -> Response:
         """Remove one photo from this listing."""
         property_obj = self.get_object()
         image = get_object_or_404(PropertyImage, pk=image_id, property=property_obj)

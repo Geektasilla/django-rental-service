@@ -5,7 +5,9 @@ from common.tests.factories import make_tenant
 from notifications.models import Notification
 
 
-@override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
+@override_settings(
+    CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+)
 class NotificationPrivacyTests(TestCase):
     """
     NotificationViewSet deliberately filters ``user=request.user`` by hand instead of reusing
@@ -17,8 +19,12 @@ class NotificationPrivacyTests(TestCase):
     def setUp(self) -> None:
         self.owner = make_tenant(email="owner@example.com")
         self.other = make_tenant(email="other@example.com")
-        self.own_notification = Notification.objects.create(user=self.owner, message="Your booking was confirmed.")
-        Notification.objects.create(user=self.other, message="Someone else's notification.")
+        self.own_notification = Notification.objects.create(
+            user=self.owner, message="Your booking was confirmed."
+        )
+        Notification.objects.create(
+            user=self.other, message="Someone else's notification."
+        )
         self.client = APIClient()
 
     def test_list_only_returns_own_notifications(self) -> None:
@@ -37,7 +43,9 @@ class NotificationPrivacyTests(TestCase):
     def test_mark_own_notification_as_read(self) -> None:
         self.client.force_authenticate(user=self.owner)
         response = self.client.patch(
-            f"/api/v1/notifications/{self.own_notification.pk}/", {"is_read": True}, format="json"
+            f"/api/v1/notifications/{self.own_notification.pk}/",
+            {"is_read": True},
+            format="json",
         )
         self.assertEqual(response.status_code, 200, response.data)
         self.own_notification.refresh_from_db()

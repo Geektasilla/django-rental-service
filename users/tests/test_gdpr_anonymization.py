@@ -31,13 +31,17 @@ class AccountDeletionTests(TestCase):
             end_date=date.today() + timedelta(days=2),
             status=BookingStatusChoices.PAID,
         )
-        Ticket.objects.create(user=self.tenant, subject="Help", status=Ticket.StatusChoices.OPEN)
+        Ticket.objects.create(
+            user=self.tenant, subject="Help", status=Ticket.StatusChoices.OPEN
+        )
         self.client = APIClient()
 
     def test_anonymize_scrubs_pii_but_keeps_protected_history(self) -> None:
         self.client.force_authenticate(user=self.tenant)
         response = self.client.post(
-            "/api/v1/users/me/delete-account/", {"password": "TestPass123!"}, format="json"
+            "/api/v1/users/me/delete-account/",
+            {"password": "TestPass123!"},
+            format="json",
         )
         self.assertEqual(response.status_code, 200, response.data)
 
@@ -69,6 +73,8 @@ class AccountDeletionTests(TestCase):
 
     def test_requires_authentication(self) -> None:
         response = self.client.post(
-            "/api/v1/users/me/delete-account/", {"password": "TestPass123!"}, format="json"
+            "/api/v1/users/me/delete-account/",
+            {"password": "TestPass123!"},
+            format="json",
         )
         self.assertEqual(response.status_code, 401)

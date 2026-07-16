@@ -9,7 +9,9 @@ from .tasks import send_new_booking_request_email_task
 
 
 @receiver(post_save, sender=Booking)
-def notify_owner_of_new_booking(sender, instance: Booking, created: bool, **kwargs) -> None:
+def notify_owner_of_new_booking(
+    sender, instance: Booking, created: bool, **kwargs
+) -> None:
     """
     On booking creation, notify the property's owner in-app immediately and queue the email send.
 
@@ -29,7 +31,11 @@ def notify_owner_of_new_booking(sender, instance: Booking, created: bool, **kwar
         user=instance.property.owner,
         message=str(
             _("New booking request for %(title)s from %(start)s to %(end)s.")
-            % {"title": instance.property.title, "start": instance.start_date, "end": instance.end_date}
+            % {
+                "title": instance.property.title,
+                "start": instance.start_date,
+                "end": instance.end_date,
+            }
         ),
     )
     send_new_booking_request_email_task.delay(instance.pk)

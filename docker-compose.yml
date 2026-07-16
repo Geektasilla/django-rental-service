@@ -3,6 +3,12 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 # Контейнер для основного веб-приложения Django (Gunicorn).
   web:
     build: .
@@ -12,16 +18,18 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     ports:
       - "8000:8000"
     volumes:
       - media:/app/media
       - staticfiles:/app/staticfiles
-    command: >
-      sh -c "python manage.py migrate --noinput &&
-             python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi --bind 0.0.0.0:8000"
+    command: gunicorn config.wsgi --bind 0.0.0.0:8000
+
+#      sh -c "python manage.py migrate --noinput &&
+#             python manage.py collectstatic --noinput &&
+#             gunicorn config.wsgi --bind 0.0.0.0:8000"
 
 #  Контейнер для фоновых задач Celery (Celery Worker)
   worker:
@@ -32,7 +40,8 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     volumes:
       - media:/app/media
     command: celery -A config worker -l info
@@ -46,7 +55,8 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     command: celery -A config beat -l info
 
 volumes:

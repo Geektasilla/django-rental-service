@@ -347,14 +347,11 @@ SPECTACULAR_SETTINGS = {
         'TicketStatusEnum': 'support.models.ticket.Ticket.StatusChoices',
         'ProfileStatusEnum': 'common.models.choices.ProfileStatusChoices',
     },
-    # Documentation (schema/Swagger/Redoc) is staff-only, not public - only affects who can open
-    # these three pages, not the rest of the API (each endpoint still enforces its own permissions
-    # regardless of this setting).
-    'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAdminUser'],
-    # SessionAuthentication (not the project's default JWTAuthentication) so a staff member logged
-    # into /admin/ in their browser can open the docs directly - a browser page navigation can't
-    # attach a JWT Bearer header, only the session cookie set by logging into Django admin.
-    'SERVE_AUTHENTICATION': ['rest_framework.authentication.SessionAuthentication'],
+    # Documentation (schema/Swagger/Redoc) is public - only affects who can open these three pages,
+    # not the rest of the API (each endpoint still enforces its own permissions regardless of this
+    # setting, e.g. "Try it out" in Swagger UI without a valid JWT still gets a 401/403 from the
+    # actual endpoint).
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
     'SWAGGER_UI_SETTINGS': {
         'deepLinking': True,
         'displayRequestDuration': True,

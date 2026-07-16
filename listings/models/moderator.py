@@ -24,7 +24,9 @@ class ModerationLog(models.Model):
         related_name="moderation_logs",
     )
     source = models.CharField(_("source"), max_length=20, choices=SourceChoices.choices)
-    decision = models.CharField(_("decision"), max_length=20, choices=DecisionChoices.choices)
+    decision = models.CharField(
+        _("decision"), max_length=20, choices=DecisionChoices.choices
+    )
     reason = models.TextField(
         _("reason"),
         blank=True,

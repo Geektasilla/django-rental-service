@@ -18,7 +18,9 @@ class PropertyDeletionLog(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name="property_deletions",
-        help_text=_("The listing's owner - only the owner may delete their own listing."),
+        help_text=_(
+            "The listing's owner - only the owner may delete their own listing."
+        ),
     )
     ip_address = models.GenericIPAddressField(_("IP address"), null=True, blank=True)
     deleted_at = models.DateTimeField(_("deleted at"), auto_now_add=True)

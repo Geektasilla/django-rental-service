@@ -39,8 +39,14 @@ PROPERTY_PHOTOS_DIR = settings.MEDIA_ROOT / "property_photos"
 
 CATEGORY_NAMES = ["Apartment", "House", "Studio", "Room"]
 AMENITY_NAMES = [
-    "Wi-Fi", "Parking", "Washer", "Dishwasher", "Balcony",
-    "Elevator", "Pet Friendly", "Air Conditioning",
+    "Wi-Fi",
+    "Parking",
+    "Washer",
+    "Dishwasher",
+    "Balcony",
+    "Elevator",
+    "Pet Friendly",
+    "Air Conditioning",
 ]
 
 GERMAN_POSTAL_CODES = [
@@ -62,14 +68,29 @@ GERMAN_POSTAL_CODES = [
 ]
 
 SEARCH_KEYWORDS = [
-    "apartment Berlin", "cheap studio Munich", "WG Köln", "Wohnung Frankfurt",
-    "2 bedroom house Hamburg", "pet friendly apartment", "furnished room Leipzig",
-    "long term rental Stuttgart", "studio near center", "parking included",
+    "apartment Berlin",
+    "cheap studio Munich",
+    "WG Köln",
+    "Wohnung Frankfurt",
+    "2 bedroom house Hamburg",
+    "pet friendly apartment",
+    "furnished room Leipzig",
+    "long term rental Stuttgart",
+    "studio near center",
+    "parking included",
 ]
 
 TITLE_ADJECTIVE_STEMS = [
-    "Gemütlich", "Hell", "Modern", "Zentral", "Ruhig",
-    "Charmant", "Stilvoll", "Sonnig", "Geräumig", "Renoviert",
+    "Gemütlich",
+    "Hell",
+    "Modern",
+    "Zentral",
+    "Ruhig",
+    "Charmant",
+    "Stilvoll",
+    "Sonnig",
+    "Geräumig",
+    "Renoviert",
 ]
 CATEGORY_NOUNS_DE = {
     "Apartment": "Wohnung",
@@ -127,9 +148,14 @@ AGENT_BIO_SENTENCES = [
 ]
 
 TICKET_SUBJECTS = [
-    "Frage zur Buchung", "Problem mit der Zahlung", "Wohnung nicht wie beschrieben",
-    "Stornierung einer Buchung", "Frage zum Vermieter", "Technisches Problem mit dem Konto",
-    "Frage zur Rechnung", "Verifizierung des Kontos",
+    "Frage zur Buchung",
+    "Problem mit der Zahlung",
+    "Wohnung nicht wie beschrieben",
+    "Stornierung einer Buchung",
+    "Frage zum Vermieter",
+    "Technisches Problem mit dem Konto",
+    "Frage zur Rechnung",
+    "Verifizierung des Kontos",
 ]
 TICKET_OPENING_MESSAGES = [
     "Ich habe eine Frage zu meiner aktuellen Buchung und wüsste gerne mehr Details.",
@@ -169,7 +195,11 @@ def build_property_description(rent_type: str, rooms_count: int, city: str) -> s
     :return: a short, grammatically correct German description paragraph.
     """
     intro = f"Diese Immobilie bietet {rooms_count} Zimmer in {city}."
-    rent_pool = DESCRIPTION_SENTENCES_DAILY if rent_type == Property.RentTypeChoices.DAILY else DESCRIPTION_SENTENCES_LONG_TERM
+    rent_pool = (
+        DESCRIPTION_SENTENCES_DAILY
+        if rent_type == Property.RentTypeChoices.DAILY
+        else DESCRIPTION_SENTENCES_LONG_TERM
+    )
     sentences = random.sample(DESCRIPTION_SENTENCES_GENERAL, k=random.randint(2, 3))
     sentences.append(random.choice(rent_pool))
     random.shuffle(sentences)
@@ -214,7 +244,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs) -> None:
         if not settings.DEBUG:
-            raise CommandError("seed_data can only run with DEBUG=True (refusing to seed a production database).")
+            raise CommandError(
+                "seed_data can only run with DEBUG=True (refusing to seed a production database)."
+            )
 
         fake = Faker("de_DE")
         today = timezone.now().date()
@@ -226,7 +258,9 @@ class Command(BaseCommand):
         users, landlords, tenants = self._create_users(fake)
 
         self.stdout.write(f"Creating properties (target: {PROPERTY_COUNT})...")
-        properties = self._create_properties(fake, landlords, categories, amenities, postal_codes)
+        properties = self._create_properties(
+            fake, landlords, categories, amenities, postal_codes
+        )
 
         self.stdout.write("Creating bookings...")
         past_paid_bookings = self._create_bookings(fake, tenants, properties, today)
@@ -243,12 +277,20 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("Database filled successfully."))
 
-    def _create_reference_data(self) -> tuple[list[Category], list[Amenity], list[PostalCode]]:
+    def _create_reference_data(
+        self,
+    ) -> tuple[list[Category], list[Amenity], list[PostalCode]]:
         with transaction.atomic():
-            categories = [Category.objects.get_or_create(name=name)[0] for name in CATEGORY_NAMES]
-            amenities = [Amenity.objects.get_or_create(name=name)[0] for name in AMENITY_NAMES]
+            categories = [
+                Category.objects.get_or_create(name=name)[0] for name in CATEGORY_NAMES
+            ]
+            amenities = [
+                Amenity.objects.get_or_create(name=name)[0] for name in AMENITY_NAMES
+            ]
             postal_codes = [
-                PostalCode.objects.get_or_create(code=code, defaults={"city": city, "state": state})[0]
+                PostalCode.objects.get_or_create(
+                    code=code, defaults={"city": city, "state": state}
+                )[0]
                 for code, city, state in GERMAN_POSTAL_CODES
             ]
         return categories, amenities, postal_codes
@@ -260,12 +302,18 @@ class Command(BaseCommand):
 
         :return: (all_users, landlords - is_owner or is_agent, tenants - has a TenantProfile).
         """
-        users: list[User] = list(User.objects.filter(email__endswith=f"@{settings.SEED_EMAIL_DOMAIN}"))
+        users: list[User] = list(
+            User.objects.filter(email__endswith=f"@{settings.SEED_EMAIL_DOMAIN}")
+        )
         tenant_user_ids = set(
-            TenantProfile.objects.filter(user__in=users).values_list("user_id", flat=True)
+            TenantProfile.objects.filter(user__in=users).values_list(
+                "user_id", flat=True
+            )
         )
         certified_agent_ids = set(
-            AgentProfile.objects.filter(user__in=users, is_certified=True).values_list("user_id", flat=True)
+            AgentProfile.objects.filter(user__in=users, is_certified=True).values_list(
+                "user_id", flat=True
+            )
         )
         # Only a user with owner status, or a *certified* agent, may list a property at all
         # (see Property.clean() - an uncertified agent with no owner status can list nothing).
@@ -319,7 +367,9 @@ class Command(BaseCommand):
                         bio=build_agent_bio(),
                     )
                 if is_tenant:
-                    TenantProfile.objects.create(user=user, passport_data=fake.numerify("P#########"))
+                    TenantProfile.objects.create(
+                        user=user, passport_data=fake.numerify("P#########")
+                    )
 
             if is_owner or is_certified_agent:
                 landlords.append(user)
@@ -333,7 +383,9 @@ class Command(BaseCommand):
             create_one_user,
             max_attempts_per_target=MAX_ATTEMPTS_PER_TARGET,
             label="users",
-            on_error=lambda exc: self.stderr.write(self.style.WARNING(f"Skipping one user due to error: {exc}")),
+            on_error=lambda exc: self.stderr.write(
+                self.style.WARNING(f"Skipping one user due to error: {exc}")
+            ),
         )
 
         return users, landlords, tenants
@@ -348,7 +400,9 @@ class Command(BaseCommand):
     ) -> list[Property]:
         """Top up existing seed properties to PROPERTY_COUNT (same checkpointing idea as users)."""
         properties: list[Property] = list(
-            Property.objects.filter(owner__email__endswith=f"@{settings.SEED_EMAIL_DOMAIN}")
+            Property.objects.filter(
+                owner__email__endswith=f"@{settings.SEED_EMAIL_DOMAIN}"
+            )
         )
         self._property_photo_pool = self._load_property_photo_pool()
 
@@ -357,7 +411,9 @@ class Command(BaseCommand):
             return bool(agent_profile and agent_profile.is_certified)
 
         landlord_weights = [
-            CERTIFIED_AGENT_LANDLORD_WEIGHT if _is_certified_agent(u) else PRIVATE_OWNER_LANDLORD_WEIGHT
+            CERTIFIED_AGENT_LANDLORD_WEIGHT
+            if _is_certified_agent(u)
+            else PRIVATE_OWNER_LANDLORD_WEIGHT
             for u in landlords
         ]
 
@@ -368,7 +424,9 @@ class Command(BaseCommand):
             can_list_as_agent = bool(agent_profile and agent_profile.is_certified)
 
             if can_list_as_owner and can_list_as_agent:
-                listed_as = random.choice([Property.ListedAsChoices.OWNER, Property.ListedAsChoices.AGENT])
+                listed_as = random.choice(
+                    [Property.ListedAsChoices.OWNER, Property.ListedAsChoices.AGENT]
+                )
             elif can_list_as_agent:
                 listed_as = Property.ListedAsChoices.AGENT
             else:
@@ -395,12 +453,20 @@ class Command(BaseCommand):
 
                 property_ = Property.objects.create(
                     owner=owner,
-                    title=build_property_title(category.name, rooms_count, postal_code.city),
-                    description=build_property_description(rent_type, rooms_count, postal_code.city),
+                    title=build_property_title(
+                        category.name, rooms_count, postal_code.city
+                    ),
+                    description=build_property_description(
+                        rent_type, rooms_count, postal_code.city
+                    ),
                     category=category,
                     rent_type=rent_type,
-                    price_per_day=Decimal(random.randrange(20, 300)) if is_daily else None,
-                    price_per_month=None if is_daily else Decimal(random.randrange(400, 3000)),
+                    price_per_day=Decimal(random.randrange(20, 300))
+                    if is_daily
+                    else None,
+                    price_per_month=None
+                    if is_daily
+                    else Decimal(random.randrange(400, 3000)),
                     rooms_count=rooms_count,
                     is_active=True,
                     listed_as=listed_as,
@@ -412,7 +478,9 @@ class Command(BaseCommand):
                 # furthest-back simulated booking (_create_bookings), so a listing never appears
                 # to have been booked before it existed.
                 backdated_created_at = timezone.now() - timedelta(
-                    days=random.randint(MAX_PAST_BOOKING_DAYS + 5, MAX_PAST_BOOKING_DAYS + 135)
+                    days=random.randint(
+                        MAX_PAST_BOOKING_DAYS + 5, MAX_PAST_BOOKING_DAYS + 135
+                    )
                 )
                 Property.objects.filter(pk=property_.pk).update(
                     moderation_status=Property.ModerationStatusChoices.APPROVED,
@@ -421,13 +489,19 @@ class Command(BaseCommand):
                 property_.moderation_status = Property.ModerationStatusChoices.APPROVED
                 property_.created_at = backdated_created_at
 
-                property_.amenities.set(random.sample(amenities, k=random.randint(1, len(amenities))))
+                property_.amenities.set(
+                    random.sample(amenities, k=random.randint(1, len(amenities)))
+                )
 
                 PropertyLocation.objects.create(
                     property=property_,
                     address=address,
-                    apartment_number=str(random.randint(1, 40)) if random.random() < 0.6 else "",
-                    floor_info=f"{random.randint(1, 6)}. Stock" if random.random() < 0.6 else "",
+                    apartment_number=str(random.randint(1, 40))
+                    if random.random() < 0.6
+                    else "",
+                    floor_info=f"{random.randint(1, 6)}. Stock"
+                    if random.random() < 0.6
+                    else "",
                 )
 
             folder = property_.category.name.lower()
@@ -448,7 +522,9 @@ class Command(BaseCommand):
             create_one_property,
             max_attempts_per_target=MAX_ATTEMPTS_PER_TARGET,
             label="properties",
-            on_error=lambda exc: self.stderr.write(self.style.WARNING(f"Skipping one property due to error: {exc}")),
+            on_error=lambda exc: self.stderr.write(
+                self.style.WARNING(f"Skipping one property due to error: {exc}")
+            ),
         )
 
         return properties
@@ -465,7 +541,9 @@ class Command(BaseCommand):
 
     def _fake_document_file(self, name: str) -> ContentFile:
         """Generate a plaintext stand-in for a power of attorney document."""
-        return ContentFile(b"Fake power of attorney document generated for seed data.", name=name)
+        return ContentFile(
+            b"Fake power of attorney document generated for seed data.", name=name
+        )
 
     def _create_bookings(
         self,
@@ -493,7 +571,9 @@ class Command(BaseCommand):
                 status = (
                     BookingStatusChoices.PAID
                     if is_past
-                    else random.choice([BookingStatusChoices.PENDING, BookingStatusChoices.BOOKED])
+                    else random.choice(
+                        [BookingStatusChoices.PENDING, BookingStatusChoices.BOOKED]
+                    )
                 )
 
                 try:
@@ -507,7 +587,9 @@ class Command(BaseCommand):
                         )
                 except Exception as exc:
                     self.stderr.write(
-                        self.style.WARNING(f"Skipping a booking for property {property_.pk}: {exc}")
+                        self.style.WARNING(
+                            f"Skipping a booking for property {property_.pk}: {exc}"
+                        )
                     )
                     cursor = end_date + timedelta(days=random.randint(1, 10))
                     continue
@@ -518,7 +600,9 @@ class Command(BaseCommand):
 
         return past_paid_bookings
 
-    def _create_reviews(self, fake: Faker, past_paid_bookings: list[Booking], today) -> None:
+    def _create_reviews(
+        self, fake: Faker, past_paid_bookings: list[Booking], today
+    ) -> None:
         for booking in past_paid_bookings:
             if (today - booking.end_date).days > 90:
                 continue
@@ -533,7 +617,11 @@ class Command(BaseCommand):
                         comment=build_review_comment(rating),
                     )
             except Exception as exc:
-                self.stderr.write(self.style.WARNING(f"Skipping a review for booking {booking.pk}: {exc}"))
+                self.stderr.write(
+                    self.style.WARNING(
+                        f"Skipping a review for booking {booking.pk}: {exc}"
+                    )
+                )
 
     def _create_search_history(self, users: list[User]) -> None:
         with transaction.atomic():
@@ -562,12 +650,20 @@ class Command(BaseCommand):
 
         for _ in range(TICKET_COUNT):
             opener = random.choice(openers)
-            agent = random.choice(support_agents) if support_agents and random.random() < 0.8 else None
+            agent = (
+                random.choice(support_agents)
+                if support_agents and random.random() < 0.8
+                else None
+            )
             status = (
                 Ticket.StatusChoices.OPEN
                 if agent is None
                 else random.choices(
-                    [Ticket.StatusChoices.OPEN, Ticket.StatusChoices.IN_PROGRESS, Ticket.StatusChoices.CLOSED],
+                    [
+                        Ticket.StatusChoices.OPEN,
+                        Ticket.StatusChoices.IN_PROGRESS,
+                        Ticket.StatusChoices.CLOSED,
+                    ],
                     weights=[2, 3, 5],
                 )[0]
             )
@@ -581,23 +677,35 @@ class Command(BaseCommand):
                         status=status,
                     )
                     Message.objects.create(
-                        ticket=ticket, sender=opener, body=random.choice(TICKET_OPENING_MESSAGES)
+                        ticket=ticket,
+                        sender=opener,
+                        body=random.choice(TICKET_OPENING_MESSAGES),
                     )
                     if agent is not None and status != Ticket.StatusChoices.OPEN:
                         for _ in range(random.randint(1, 3)):
                             sender = agent if random.random() < 0.5 else opener
                             Message.objects.create(
-                                ticket=ticket, sender=sender, body=random.choice(TICKET_REPLY_MESSAGES)
+                                ticket=ticket,
+                                sender=sender,
+                                body=random.choice(TICKET_REPLY_MESSAGES),
                             )
             except Exception as exc:
-                self.stderr.write(self.style.WARNING(f"Skipping a support ticket: {exc}"))
+                self.stderr.write(
+                    self.style.WARNING(f"Skipping a support ticket: {exc}")
+                )
 
-    def _create_property_views(self, fake: Faker, users: list[User], properties: list[Property]) -> None:
+    def _create_property_views(
+        self, fake: Faker, users: list[User], properties: list[Property]
+    ) -> None:
         popular_properties = set(random.sample(properties, k=4))
 
         with transaction.atomic():
             for property_ in properties:
-                view_count = random.randint(20, 60) if property_ in popular_properties else random.randint(0, 10)
+                view_count = (
+                    random.randint(20, 60)
+                    if property_ in popular_properties
+                    else random.randint(0, 10)
+                )
                 for _ in range(view_count):
                     is_authenticated = random.random() < 0.6
                     PropertyView.objects.create(

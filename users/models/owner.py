@@ -29,21 +29,27 @@ class OwnerProfile(models.Model):
     is_company = models.BooleanField(
         _("is company"),
         default=False,
-        help_text=_("Whether the owner is a legal entity rather than a private individual."),
+        help_text=_(
+            "Whether the owner is a legal entity rather than a private individual."
+        ),
     )
     company_name = models.CharField(_("company name"), max_length=255, blank=True)
     registration_number = models.CharField(
         _("registration number"),
         max_length=64,
         blank=True,
-        help_text=_("Commercial register number (Handelsregisternummer), if applicable."),
+        help_text=_(
+            "Commercial register number (Handelsregisternummer), if applicable."
+        ),
     )
 
     languages = models.CharField(
         _("languages"),
         max_length=255,
         blank=True,
-        help_text=_("Comma-separated list of languages spoken by the owner, e.g. German, English."),
+        help_text=_(
+            "Comma-separated list of languages spoken by the owner, e.g. German, English."
+        ),
     )
 
     is_verified = models.BooleanField(

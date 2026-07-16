@@ -25,7 +25,9 @@ class HealthCheckView(APIView):
 
     permission_classes = [AllowAny]
 
-    @extend_schema(exclude=True)  # infrastructure probe, not part of the public API surface
+    @extend_schema(
+        exclude=True
+    )  # infrastructure probe, not part of the public API surface
     def get(self, request: Request) -> Response:
         """
         :param request: unused; no parameters.
@@ -35,5 +37,7 @@ class HealthCheckView(APIView):
             connection.ensure_connection()
         except OperationalError:
             logger.exception("Health check failed: database unreachable.")
-            return Response({"status": "unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response(
+                {"status": "unavailable"}, status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
         return Response({"status": "ok"})

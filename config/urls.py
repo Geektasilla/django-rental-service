@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -24,29 +25,31 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from common.views import HealthCheckView
 
 # Interface
-admin.site.site_header = 'Django Rental Service Admin'
-admin.site.site_title = 'Django Rental Service'
-admin.site.index_title = _('Administration')
+admin.site.site_header = "Django Rental Service Admin"
+admin.site.site_title = "Django Rental Service"
+admin.site.index_title = _("Administration")
 
 urlpatterns = [
     # SYSTEM
-    path('', RedirectView.as_view(url='api/schema/swagger-ui/', permanent=False)),
-    path('admin/', admin.site.urls),
-    path('health/', HealthCheckView.as_view(), name='health-check'),
-    path('i18n/', include('django.conf.urls.i18n')),
-
+    path("", RedirectView.as_view(url="api/schema/swagger-ui/", permanent=False)),
+    path("admin/", admin.site.urls),
+    path("health/", HealthCheckView.as_view(), name="health-check"),
+    path("i18n/", include("django.conf.urls.i18n")),
     # BUSINESS API
-    path('api/v1/auth/', include('users.urls')),
-    path('api/v1/users/', include('users.profile_urls')),
-    path('api/v1/listings/', include('listings.urls')),
-    path('api/v1/bookings/', include('bookings.urls')),
-    path('api/v1/notifications/', include('notifications.urls')),
-    path('api/v1/support/', include('support.urls')),
-    path('api/v1/analytics/', include('analytics.urls')),
-
+    path("api/v1/auth/", include("users.urls")),
+    path("api/v1/users/", include("users.profile_urls")),
+    path("api/v1/listings/", include("listings.urls")),
+    path("api/v1/bookings/", include("bookings.urls")),
+    path("api/v1/notifications/", include("notifications.urls")),
+    path("api/v1/support/", include("support.urls")),
+    path("api/v1/analytics/", include("analytics.urls")),
     # API documentation
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/schema/swagger-ui/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
 ]
 
 if settings.DEBUG:

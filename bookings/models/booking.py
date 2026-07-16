@@ -29,7 +29,9 @@ class Booking(TimeStampedModel):
         max_length=20,
         choices=BookingStatusChoices.choices,
         default=BookingStatusChoices.PENDING,
-        help_text=_("Set to BOOKED/CANCELLED only by the property's owner or agent approving or declining the request."),
+        help_text=_(
+            "Set to BOOKED/CANCELLED only by the property's owner or agent approving or declining the request."
+        ),
     )
     price_frozen = models.DecimalField(
         _("price frozen"),
@@ -104,7 +106,11 @@ class Booking(TimeStampedModel):
                 else self.property.price_per_month
             )
         else:
-            previous_status = Booking.objects.filter(pk=self.pk).values_list("status", flat=True).first()
+            previous_status = (
+                Booking.objects.filter(pk=self.pk)
+                .values_list("status", flat=True)
+                .first()
+            )
             if (
                 previous_status != BookingStatusChoices.PAID
                 and self.status == BookingStatusChoices.PAID

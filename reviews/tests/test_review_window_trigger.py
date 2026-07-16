@@ -49,7 +49,10 @@ class ReviewWindowTriggerTests(TestCase):
             Review.objects.bulk_create([stale_review])
 
     def test_trigger_blocks_review_on_non_paid_booking_bypassing_clean(self) -> None:
-        booking = self._make_booking(end_date=date.today() - timedelta(days=1), status=BookingStatusChoices.BOOKED)
+        booking = self._make_booking(
+            end_date=date.today() - timedelta(days=1),
+            status=BookingStatusChoices.BOOKED,
+        )
         unpaid_review = Review(booking=booking, rating=5, comment="Never paid.")
         with self.assertRaises(IntegrityError):
             Review.objects.bulk_create([unpaid_review])
@@ -62,7 +65,9 @@ class ReviewWindowDaysCanaryTest(TestCase):
     can't read Python constants). If this fails, someone changed one without the other.
     """
 
-    def test_review_window_days_matches_the_hardcoded_db_trigger_threshold(self) -> None:
+    def test_review_window_days_matches_the_hardcoded_db_trigger_threshold(
+        self,
+    ) -> None:
         self.assertEqual(
             REVIEW_WINDOW_DAYS,
             90,

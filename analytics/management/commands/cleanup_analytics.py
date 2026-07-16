@@ -28,10 +28,16 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options) -> None:
-        days = options["days"] if options["days"] is not None else settings.ANALYTICS_RETENTION_DAYS
+        days = (
+            options["days"]
+            if options["days"] is not None
+            else settings.ANALYTICS_RETENTION_DAYS
+        )
         cutoff = timezone.now() - timedelta(days=days)
 
-        deleted_searches, _ = SearchHistory.objects.filter(created_at__lt=cutoff).delete()
+        deleted_searches, _ = SearchHistory.objects.filter(
+            created_at__lt=cutoff
+        ).delete()
         deleted_views, _ = PropertyView.objects.filter(viewed_at__lt=cutoff).delete()
 
         self.stdout.write(

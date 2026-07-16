@@ -6,7 +6,6 @@ from listings.models import (
     Address,
     Amenity,
     Category,
-    ModerationLog,
     PostalCode,
     Property,
     PropertyImage,
@@ -89,15 +88,22 @@ class PropertyLocationWriteSerializer(serializers.Serializer):
     state = serializers.CharField(max_length=100)
     street = serializers.CharField(max_length=255)
     house_number = serializers.CharField(max_length=20)
-    apartment_number = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
-    floor_info = serializers.CharField(max_length=50, required=False, allow_blank=True, default="")
+    apartment_number = serializers.CharField(
+        max_length=20, required=False, allow_blank=True, default=""
+    )
+    floor_info = serializers.CharField(
+        max_length=50, required=False, allow_blank=True, default=""
+    )
 
 
 class ModerationDecisionSerializer(serializers.Serializer):
     """Write-only input for PropertyViewSet.moderate() - a human moderator's approve/reject call."""
 
     decision = serializers.ChoiceField(
-        choices=[Property.ModerationStatusChoices.APPROVED, Property.ModerationStatusChoices.REJECTED]
+        choices=[
+            Property.ModerationStatusChoices.APPROVED,
+            Property.ModerationStatusChoices.REJECTED,
+        ]
     )
     reason = serializers.CharField(required=False, allow_blank=True, default="")
 
@@ -143,7 +149,9 @@ class PropertySerializer(serializers.ModelSerializer):
         queryset=Amenity.objects.all(), many=True, required=False, write_only=True
     )
     amenities_detail = AmenitySerializer(source="amenities", many=True, read_only=True)
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), write_only=True)
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), write_only=True
+    )
     category_detail = CategorySerializer(source="category", read_only=True)
     popularity = serializers.IntegerField(read_only=True)
     pricing = serializers.SerializerMethodField()
@@ -175,7 +183,13 @@ class PropertySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "owner", "moderation_status", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "owner",
+            "moderation_status",
+            "created_at",
+            "updated_at",
+        ]
         extra_kwargs = {
             "price_per_day": {"write_only": True},
             "price_per_month": {"write_only": True},
@@ -212,7 +226,8 @@ class PropertySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = getattr(request, "user", None)
         can_view_owner_fields = bool(
-            user and user.is_authenticated
+            user
+            and user.is_authenticated
             and (user.is_staff or user.is_moderator or instance.owner_id == user.id)
         )
         if not can_view_owner_fields:
@@ -232,7 +247,9 @@ class PropertySerializer(serializers.ModelSerializer):
         location_data = validated_data.pop("location")
         amenities = validated_data.pop("amenities", [])
         try:
-            property_obj = Property.objects.create(owner=self.context["request"].user, **validated_data)
+            property_obj = Property.objects.create(
+                owner=self.context["request"].user, **validated_data
+            )
         except DjangoValidationError as exc:
             raise as_drf_validation_error(exc)
         if amenities:

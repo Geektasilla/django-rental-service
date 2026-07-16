@@ -6,7 +6,11 @@ from users.models import User
 from users.models.agent import AgentProfile
 from users.models.owner import OwnerProfile
 from users.models.tenant import TenantProfile
-from users.tokens import decode_uid, email_verification_token_generator, password_reset_token_generator
+from users.tokens import (
+    decode_uid,
+    email_verification_token_generator,
+    password_reset_token_generator,
+)
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -17,7 +21,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     ``is_active``.
     """
 
-    password = serializers.CharField(write_only=True, validators=[validate_password], label=_("password"))
+    password = serializers.CharField(
+        write_only=True, validators=[validate_password], label=_("password")
+    )
 
     class Meta:
         model = User
@@ -56,6 +62,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for viewing and updating the authenticated user's profile.
     """
+
     class Meta:
         model = User
         fields = [
@@ -73,7 +80,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
-            "email", # Email changes should be handled separately for verification
+            "email",  # Email changes should be handled separately for verification
             "is_owner",
             "is_agent",
             "is_support",
@@ -96,8 +103,16 @@ class OwnerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = OwnerProfile
         fields = [
-            "tax_id", "bio", "is_company", "company_name", "registration_number", "languages",
-            "verification_document", "is_verified", "verified_at", "status",
+            "tax_id",
+            "bio",
+            "is_company",
+            "company_name",
+            "registration_number",
+            "languages",
+            "verification_document",
+            "is_verified",
+            "verified_at",
+            "status",
         ]
         read_only_fields = ["is_verified", "verified_at", "status"]
 
@@ -113,7 +128,14 @@ class AgentProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AgentProfile
-        fields = ["company_name", "license_number", "website", "bio", "is_certified", "status"]
+        fields = [
+            "company_name",
+            "license_number",
+            "website",
+            "bio",
+            "is_certified",
+            "status",
+        ]
         read_only_fields = ["is_certified", "status"]
 
 
@@ -140,7 +162,9 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
     uid = serializers.CharField(label=_("uid"))
     token = serializers.CharField(label=_("token"))
-    new_password = serializers.CharField(write_only=True, validators=[validate_password], label=_("new password"))
+    new_password = serializers.CharField(
+        write_only=True, validators=[validate_password], label=_("new password")
+    )
 
     def validate(self, attrs: dict) -> dict:
         """
@@ -157,7 +181,9 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         )
 
 
-def _validate_uid_token(attrs: dict, token_generator, invalid_msg: str, expired_msg: str) -> dict:
+def _validate_uid_token(
+    attrs: dict, token_generator, invalid_msg: str, expired_msg: str
+) -> dict:
     """
     Shared body for "resolve a user from an emailed uid+token link" validators.
 
@@ -179,7 +205,9 @@ def _validate_uid_token(attrs: dict, token_generator, invalid_msg: str, expired_
     return attrs
 
 
-def _validate_matches_request_user_password(serializer: serializers.Serializer, value: str, error: str) -> str:
+def _validate_matches_request_user_password(
+    serializer: serializers.Serializer, value: str, error: str
+) -> str:
     """
     Shared field-validator body for "confirm your current password" fields.
 
@@ -198,8 +226,12 @@ def _validate_matches_request_user_password(serializer: serializers.Serializer, 
 class ChangePasswordSerializer(serializers.Serializer):
     """Input for changing the authenticated user's own password."""
 
-    current_password = serializers.CharField(write_only=True, label=_("current password"))
-    new_password = serializers.CharField(write_only=True, validators=[validate_password], label=_("new password"))
+    current_password = serializers.CharField(
+        write_only=True, label=_("current password")
+    )
+    new_password = serializers.CharField(
+        write_only=True, validators=[validate_password], label=_("new password")
+    )
 
     def validate_current_password(self, value: str) -> str:
         """
@@ -207,7 +239,9 @@ class ChangePasswordSerializer(serializers.Serializer):
         :raises serializers.ValidationError: if it doesn't match the authenticated user's password.
         :return: the same value, unchanged.
         """
-        return _validate_matches_request_user_password(self, value, _("Current password is incorrect."))
+        return _validate_matches_request_user_password(
+            self, value, _("Current password is incorrect.")
+        )
 
 
 class AccountDeletionSerializer(serializers.Serializer):
@@ -221,7 +255,9 @@ class AccountDeletionSerializer(serializers.Serializer):
         :raises serializers.ValidationError: if it doesn't match the authenticated user's password.
         :return: the same value, unchanged.
         """
-        return _validate_matches_request_user_password(self, value, _("Password is incorrect."))
+        return _validate_matches_request_user_password(
+            self, value, _("Password is incorrect.")
+        )
 
 
 class EmailVerificationRequestSerializer(serializers.Serializer):

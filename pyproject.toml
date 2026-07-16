@@ -23,3 +23,8 @@ dependencies = [
     "psycopg2-binary>=2.9.12",
     "whitenoise==6.8.2",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.22",
+]

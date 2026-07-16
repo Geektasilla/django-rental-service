@@ -3,7 +3,12 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveUpdateAPIView, get_object_or_404
+from rest_framework.generics import (
+    CreateAPIView,
+    GenericAPIView,
+    RetrieveUpdateAPIView,
+    get_object_or_404,
+)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -31,7 +36,10 @@ from users.serializers import (
     UserProfileSerializer,
 )
 from users.services.anonymization import anonymize_user
-from users.services.email import send_email_verification_email, send_password_reset_email
+from users.services.email import (
+    send_email_verification_email,
+    send_password_reset_email,
+)
 from users.tokens import (
     email_verification_token_generator,
     encode_uid,
@@ -46,7 +54,7 @@ class RegisterView(CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'register'
+    throttle_scope = "register"
 
 
 class LogoutView(GenericAPIView):
@@ -84,7 +92,7 @@ class PasswordResetRequestView(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = PasswordResetRequestSerializer
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'password_reset'
+    throttle_scope = "password_reset"
 
     def post(self, request: Request) -> Response:
         """
@@ -94,7 +102,9 @@ class PasswordResetRequestView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = User.objects.filter(email__iexact=serializer.validated_data["email"]).first()
+        user = User.objects.filter(
+            email__iexact=serializer.validated_data["email"]
+        ).first()
         if user is not None:
             token = password_reset_token_generator.make_token(user)
             send_password_reset_email(user, encode_uid(user), token)
@@ -108,7 +118,7 @@ class PasswordResetConfirmView(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = PasswordResetConfirmSerializer
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'password_reset'
+    throttle_scope = "password_reset"
 
     def post(self, request: Request) -> Response:
         """
@@ -119,7 +129,9 @@ class PasswordResetConfirmView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data["user"]
-        set_password_and_revoke_sessions(user, serializer.validated_data["new_password"])
+        set_password_and_revoke_sessions(
+            user, serializer.validated_data["new_password"]
+        )
         return Response(status=status.HTTP_200_OK)
 
 
@@ -137,7 +149,9 @@ class ChangePasswordView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        set_password_and_revoke_sessions(request.user, serializer.validated_data["new_password"])
+        set_password_and_revoke_sessions(
+            request.user, serializer.validated_data["new_password"]
+        )
         return Response(status=status.HTTP_200_OK)
 
 
@@ -152,7 +166,7 @@ class EmailVerificationRequestView(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EmailVerificationRequestSerializer
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'email_verification'
+    throttle_scope = "email_verification"
 
     def post(self, request: Request) -> Response:
         """
@@ -172,7 +186,7 @@ class EmailVerificationConfirmView(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = EmailVerificationConfirmSerializer
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'email_verification'
+    throttle_scope = "email_verification"
 
     def post(self, request: Request) -> Response:
         """
@@ -263,10 +277,16 @@ class SelfProfileView(APIView):
             flag; 400 if a profile already exists (one per user - see get_object).
         """
         if not self.role_check(request.user):
-            return Response({"detail": self.role_error}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": self.role_error}, status=status.HTTP_403_FORBIDDEN
+            )
         if self.get_object() is not None:
             return Response(
-                {"detail": _("A profile of this type already exists for your account.")},
+                {
+                    "detail": _(
+                        "A profile of this type already exists for your account."
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         serializer = self.serializer_class(data=request.data)
@@ -277,7 +297,11 @@ class SelfProfileView(APIView):
             # Race: two near-simultaneous POSTs both pass the get_object() check above before
             # either commits - the OneToOneField primary key catches the second one here.
             return Response(
-                {"detail": _("A profile of this type already exists for your account.")},
+                {
+                    "detail": _(
+                        "A profile of this type already exists for your account."
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(serializer.data, status=status.HTTP_201_CREATED)

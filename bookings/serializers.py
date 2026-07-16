@@ -33,7 +33,14 @@ class BookingSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "tenant", "status", "price_frozen", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "tenant",
+            "status",
+            "price_frozen",
+            "created_at",
+            "updated_at",
+        ]
 
     def validate_start_date(self, value):
         """
@@ -43,7 +50,9 @@ class BookingSerializer(serializers.ModelSerializer):
         """
         if value < timezone.localdate():
             raise serializers.ValidationError(
-                _("This start date has already passed - please choose today or a later date.")
+                _(
+                    "This start date has already passed - please choose today or a later date."
+                )
             )
         return value
 
@@ -62,7 +71,9 @@ class BookingSerializer(serializers.ModelSerializer):
         """
         try:
             with transaction.atomic():
-                property_obj = Property.objects.select_for_update().get(pk=validated_data["property"].pk)
+                property_obj = Property.objects.select_for_update().get(
+                    pk=validated_data["property"].pk
+                )
                 booking = Booking.objects.create(
                     tenant=self.context["request"].user,
                     property=property_obj,

@@ -1,7 +1,10 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 
 from users.models import User
 
@@ -23,6 +26,7 @@ def decode_uid(uid: str) -> User | None:
         return User.objects.get(pk=force_str(urlsafe_base64_decode(uid)))
     except (User.DoesNotExist, ValueError, TypeError, OverflowError):
         return None
+
 
 # Django's built-in token generator is reused as-is for password reset; it already invalidates
 # itself once the password changes, so no separate token model is needed.
@@ -61,7 +65,10 @@ def revoke_all_sessions(user: User) -> None:
     """
     outstanding = OutstandingToken.objects.filter(user=user)
     BlacklistedToken.objects.bulk_create(
-        (BlacklistedToken(token=token) for token in outstanding.exclude(blacklistedtoken__isnull=False)),
+        (
+            BlacklistedToken(token=token)
+            for token in outstanding.exclude(blacklistedtoken__isnull=False)
+        ),
         ignore_conflicts=True,
     )
 

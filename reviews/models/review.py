@@ -61,7 +61,9 @@ class Review(models.Model):
         deadline = self.booking.end_date + timedelta(days=REVIEW_WINDOW_DAYS)
         if timezone.now().date() > deadline:
             raise ValidationError(
-                _("Reviews must be submitted within %(days)d days of the booking's end date.")
+                _(
+                    "Reviews must be submitted within %(days)d days of the booking's end date."
+                )
                 % {"days": REVIEW_WINDOW_DAYS}
             )
 

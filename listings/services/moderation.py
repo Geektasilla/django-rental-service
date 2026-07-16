@@ -29,7 +29,9 @@ def moderate_text(text: str) -> dict:
         response = client.moderations.create(input=text)
         result = response.results[0]
         flagged_categories = [
-            category for category, is_flagged in result.categories.model_dump().items() if is_flagged
+            category
+            for category, is_flagged in result.categories.model_dump().items()
+            if is_flagged
         ]
         return {
             "flagged": result.flagged,
@@ -86,8 +88,12 @@ def moderate_image(image_field: FieldFile) -> dict:
         labels = response.get("ModerationLabels", [])
         return {
             "flagged": bool(labels),
-            "reason": ", ".join(f"{label['Name']} ({label['Confidence']:.0f}%)" for label in labels),
-            "raw_response": {k: v for k, v in response.items() if k != "ResponseMetadata"},
+            "reason": ", ".join(
+                f"{label['Name']} ({label['Confidence']:.0f}%)" for label in labels
+            ),
+            "raw_response": {
+                k: v for k, v in response.items() if k != "ResponseMetadata"
+            },
             "error": False,
         }
     except Exception:

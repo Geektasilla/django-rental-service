@@ -18,7 +18,11 @@ class PropertyImage(models.Model):
     image = models.ImageField(
         _("image"),
         upload_to="listings/",
-        validators=[FileExtensionValidator(allowed_extensions=settings.PROPERTY_IMAGE_ALLOWED_EXTENSIONS)]
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=settings.PROPERTY_IMAGE_ALLOWED_EXTENSIONS
+            )
+        ],
     )
 
     class Meta:
@@ -41,7 +45,9 @@ class PropertyImage(models.Model):
         if self.property_id is None:
             return
         existing_count = (
-            PropertyImage.objects.filter(property_id=self.property_id).exclude(pk=self.pk).count()
+            PropertyImage.objects.filter(property_id=self.property_id)
+            .exclude(pk=self.pk)
+            .count()
         )
         if existing_count >= settings.MAX_PROPERTY_IMAGES:
             raise ValidationError(

@@ -26,6 +26,14 @@ urlpatterns = [
     path("me/owner-profile/", OwnerProfileView.as_view(), name="owner-profile"),
     path("me/agent-profile/", AgentProfileView.as_view(), name="agent-profile"),
     path("me/tenant-profile/", TenantProfileView.as_view(), name="tenant-profile"),
-    path("<int:user_id>/owner-profile/verify/", VerifyOwnerProfileView.as_view(), name="owner-profile-verify"),
-    path("<int:user_id>/agent-profile/certify/", CertifyAgentProfileView.as_view(), name="agent-profile-certify"),
+    path(
+        "<int:user_id>/owner-profile/verify/",
+        VerifyOwnerProfileView.as_view(),
+        name="owner-profile-verify",
+    ),
+    path(
+        "<int:user_id>/agent-profile/certify/",
+        CertifyAgentProfileView.as_view(),
+        name="agent-profile-certify",
+    ),
 ]

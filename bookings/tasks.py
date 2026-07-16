@@ -21,9 +21,14 @@ def send_new_booking_request_email_task(self, booking_id: int) -> None:
     :param booking_id: pk of the just-created Booking.
     """
     try:
-        booking = Booking.objects.select_related("property__owner", "tenant").get(pk=booking_id)
+        booking = Booking.objects.select_related("property__owner", "tenant").get(
+            pk=booking_id
+        )
     except Booking.DoesNotExist:
-        logger.warning("send_new_booking_request_email_task: Booking %s no longer exists.", booking_id)
+        logger.warning(
+            "send_new_booking_request_email_task: Booking %s no longer exists.",
+            booking_id,
+        )
         return
 
     try:

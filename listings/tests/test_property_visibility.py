@@ -5,7 +5,9 @@ from common.tests.factories import make_owner, make_property
 from listings.models import Property
 
 
-@override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
+@override_settings(
+    CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+)
 class PropertyVisibilityTests(TestCase):
     """
     get_queryset() draws the line guests/other users only see APPROVED+is_active listings; an
@@ -16,10 +18,14 @@ class PropertyVisibilityTests(TestCase):
         self.owner = make_owner()
         self.stranger = make_owner(email="stranger@example.com")
         self.approved = make_property(
-            self.owner, title="Approved flat", moderation_status=Property.ModerationStatusChoices.APPROVED
+            self.owner,
+            title="Approved flat",
+            moderation_status=Property.ModerationStatusChoices.APPROVED,
         )
         self.pending = make_property(
-            self.owner, title="Pending flat", moderation_status=Property.ModerationStatusChoices.PENDING
+            self.owner,
+            title="Pending flat",
+            moderation_status=Property.ModerationStatusChoices.PENDING,
         )
         self.client = APIClient()
 

@@ -384,4 +384,3 @@ pyrightconfig.json
 tools/
 .idea/
 *.xml
-*.md

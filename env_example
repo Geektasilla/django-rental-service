@@ -1,0 +1,45 @@
+# Django secret key, used for signing sessions/tokens. Generate a unique value per environment.
+SECRET_KEY=
+# True enables debug mode (verbose errors, auto-seeding). Always False in production.
+DEBUG=
+# Comma-separated hostnames/IPs allowed to serve this app.
+ALLOWED_HOSTS=
+# True connects to the DB_* settings below (MySQL); False falls back to local SQLite.
+USE_REMOTE=True
+# MySQL connection settings, required when USE_REMOTE=True.
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+DB_HOST=
+DB_PORT=
+# Redis connection string used for the Django cache backend.
+REDIS_URL=
+
+# AWS credentials for Rekognition-based image moderation on uploaded property photos.
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION_NAME=eu-central-1
+
+# OpenAI API key for text moderation on listing titles/descriptions.
+OPENAI_API_KEY=
+
+# Email backend and SMTP settings for password reset / verification emails.
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+EMAIL_HOST=
+EMAIL_PORT=587
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+EMAIL_USE_TLS=True
+DEFAULT_FROM_EMAIL=noreply@django-rental-service.local
+# Base URL of the frontend app, used to build links in outgoing emails.
+FRONTEND_URL=http://localhost:3000
+
+# Redis-backed broker/result store for Celery workers and Celery Beat.
+CELERY_BROKER_URL=redis://127.0.0.1:6379/0
+CELERY_RESULT_BACKEND=redis://127.0.0.1:6379/0
+
+# Comma-separated extra CORS origins beyond FRONTEND_URL (e.g. a deployed preview URL). Empty by default.
+CORS_EXTRA_ORIGINS=
+
+# How many days SearchHistory/PropertyView rows are kept before `manage.py cleanup_analytics` deletes them.
+ANALYTICS_RETENTION_DAYS=90

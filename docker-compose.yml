@@ -25,11 +25,10 @@ services:
     volumes:
       - media:/app/media
       - staticfiles:/app/staticfiles
-    command: gunicorn config.wsgi --bind 0.0.0.0:8000
-
-#      sh -c "python manage.py migrate --noinput &&
-#             python manage.py collectstatic --noinput &&
-#             gunicorn config.wsgi --bind 0.0.0.0:8000"
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi --bind 0.0.0.0:8000"
 
 #  Контейнер для фоновых задач Celery (Celery Worker)
   worker:

@@ -51,7 +51,7 @@ Before you begin, ensure you have the following installed on your system:
 2.  **Configure Environment Variables**:
     Copy the example file and fill in your own values:
     ```bash
-    cp .env.example .env
+    cp env_example .env
     ```
     Key variables to review:
     ```

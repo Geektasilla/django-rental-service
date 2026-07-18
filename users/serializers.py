@@ -22,7 +22,10 @@ class RegisterSerializer(serializers.ModelSerializer):
     """
 
     password = serializers.CharField(
-        write_only=True, validators=[validate_password], label=_("password")
+        write_only=True,
+        validators=[validate_password],
+        label=_("password"),
+        style={"input_type": "password"},
     )
 
     class Meta:
@@ -163,7 +166,10 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     uid = serializers.CharField(label=_("uid"))
     token = serializers.CharField(label=_("token"))
     new_password = serializers.CharField(
-        write_only=True, validators=[validate_password], label=_("new password")
+        write_only=True,
+        validators=[validate_password],
+        label=_("new password"),
+        style={"input_type": "password"},
     )
 
     def validate(self, attrs: dict) -> dict:
@@ -227,10 +233,13 @@ class ChangePasswordSerializer(serializers.Serializer):
     """Input for changing the authenticated user's own password."""
 
     current_password = serializers.CharField(
-        write_only=True, label=_("current password")
+        write_only=True, label=_("current password"), style={"input_type": "password"}
     )
     new_password = serializers.CharField(
-        write_only=True, validators=[validate_password], label=_("new password")
+        write_only=True,
+        validators=[validate_password],
+        label=_("new password"),
+        style={"input_type": "password"},
     )
 
     def validate_current_password(self, value: str) -> str:

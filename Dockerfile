@@ -16,6 +16,6 @@ COPY . .
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-RUN python manage.py compilemessages -l de
+RUN SECRET_KEY=build-time-placeholder python manage.py compilemessages -l de
 
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]

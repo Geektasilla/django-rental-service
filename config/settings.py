@@ -338,6 +338,9 @@ SPECTACULAR_SETTINGS = {
 
 # Guarded by `not DEBUG` so local runserver over plain http:// isn't broken by SSL/HSTS redirects.
 if not DEBUG:
+    # nginx terminates TLS and proxies to gunicorn over plain HTTP; without this, Django can't
+    # tell the original request was HTTPS and SECURE_SSL_REDIRECT loops forever.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True

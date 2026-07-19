@@ -67,7 +67,7 @@ class UserAdmin(DjangoUserAdmin):
                     "phone",
                     "password",
                     "password2",
-                ),  # Добавлены first_name и last_name
+                ),
             },
         ),
     )

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from common.validators import no_html_tags_validator
 from reviews.models import Review
 
 
@@ -16,6 +17,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     property = serializers.PrimaryKeyRelatedField(
         source="booking.property", read_only=True
     )
+    comment = serializers.CharField(validators=[no_html_tags_validator])
 
     class Meta:
         model = Review

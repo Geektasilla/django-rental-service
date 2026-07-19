@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from common.utils import as_drf_validation_error
+from common.validators import no_html_tags_validator
 from listings.models import (
     Address,
     Amenity,
@@ -142,6 +143,8 @@ class PropertySerializer(serializers.ModelSerializer):
     own owner/agent directly.
     """
 
+    title = serializers.CharField(max_length=255, validators=[no_html_tags_validator])
+    description = serializers.CharField(validators=[no_html_tags_validator])
     location = PropertyLocationWriteSerializer(write_only=True)
     location_detail = PropertyLocationReadSerializer(source="location", read_only=True)
     images = PropertyImageSerializer(many=True, read_only=True)

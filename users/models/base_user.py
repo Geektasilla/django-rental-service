@@ -12,6 +12,7 @@ phone_validator = RegexValidator(
 )
 
 
+
 class UserManager(BaseUserManager):
     """Manager for the custom User model, keyed on email instead of username."""
 
@@ -155,6 +156,11 @@ class User(AbstractUser):
         return self.email
 
     def save(self, *args, **kwargs) -> None:
-        """Run full_clean() so the phone validator applies regardless of the caller."""
+        """
+        This makes sure all fields are checked (like the phone number)
+        every time we save this user to the database.
+        It guarantees the data is always correct,
+        no matter if it's saved from a form, an API, or directly from code.
+        """
         self.full_clean()
         super().save(*args, **kwargs)

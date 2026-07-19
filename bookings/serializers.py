@@ -56,6 +56,18 @@ class BookingSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_property(self, value):
+        """
+        :param value: the Property being booked, as submitted by the client.
+        :return: value, unchanged, if it's approved.
+        :raises rest_framework.exceptions.ValidationError: if it hasn't been approved by a moderator.
+        """
+        if value.moderation_status != Property.ModerationStatusChoices.APPROVED:
+            raise serializers.ValidationError(
+                _("This property has not been approved yet and cannot be booked.")
+            )
+        return value
+
     def create(self, validated_data: dict) -> Booking:
         """
         :param validated_data: validated input (property, start_date, end_date).

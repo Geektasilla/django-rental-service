@@ -11,6 +11,7 @@ BEGIN
         SELECT 1 FROM bookings_booking
         WHERE id = NEW.booking_id
           AND status = 'paid'
+          AND date('now') >= end_date
           AND date('now') <= date(end_date, '+90 days')
     );
 END;
@@ -25,6 +26,7 @@ BEGIN
         SELECT 1 FROM bookings_booking
         WHERE id = NEW.booking_id
           AND status = 'paid'
+          AND date('now') >= end_date
           AND date('now') <= date(end_date, '+90 days')
     );
 END;
@@ -39,6 +41,7 @@ BEGIN
         SELECT 1 FROM bookings_booking
         WHERE id = NEW.booking_id
           AND status = 'paid'
+          AND CURDATE() >= end_date
           AND CURDATE() <= DATE_ADD(end_date, INTERVAL 90 DAY)
     ) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '%s';
@@ -55,6 +58,7 @@ BEGIN
         SELECT 1 FROM bookings_booking
         WHERE id = NEW.booking_id
           AND status = 'paid'
+          AND CURDATE() >= end_date
           AND CURDATE() <= DATE_ADD(end_date, INTERVAL 90 DAY)
     ) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '%s';

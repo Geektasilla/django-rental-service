@@ -79,8 +79,7 @@ class Booking(TimeStampedModel):
             return
         if self.end_date <= self.start_date:
             raise ValidationError(_("End date must be after the start date."))
-        if self.property.rent_type != Property.RentTypeChoices.DAILY:
-            return
+
 
         conflicts = Booking.objects.filter(
             property_id=self.property_id,

@@ -158,6 +158,7 @@ class PropertySerializer(serializers.ModelSerializer):
     category_detail = CategorySerializer(source="category", read_only=True)
     popularity = serializers.IntegerField(read_only=True)
     pricing = serializers.SerializerMethodField()
+    is_active = serializers.BooleanField(default=True)
 
     class Meta:
         model = Property
@@ -192,6 +193,7 @@ class PropertySerializer(serializers.ModelSerializer):
             "moderation_status",
             "created_at",
             "updated_at",
+
         ]
         extra_kwargs = {
             "price_per_day": {"write_only": True},

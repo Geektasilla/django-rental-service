@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -20,7 +21,10 @@ from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = Env()
-env.read_env(BASE_DIR / ".env")
+# manage.py test runs with DEBUG=True (via .env.test) so SECURE_SSL_REDIRECT below stays off -
+# the test client talks plain http and would otherwise get a 301 instead of the real response.
+env_file = ".env.test" if "test" in sys.argv else ".env"
+env.read_env(BASE_DIR / env_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/

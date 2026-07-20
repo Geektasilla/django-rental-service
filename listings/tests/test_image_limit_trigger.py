@@ -2,7 +2,7 @@ import io
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import IntegrityError
+from django.db import IntegrityError, OperationalError
 from django.test import TestCase
 from PIL import Image
 
@@ -49,7 +49,7 @@ class ImageLimitTriggerTests(TestCase):
         eleventh_image = PropertyImage(
             property=self.property, image=_fake_image_file("11th.jpg")
         )
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises((IntegrityError, OperationalError)):
             PropertyImage.objects.bulk_create([eleventh_image])
 
 

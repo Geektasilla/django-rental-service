@@ -114,7 +114,8 @@ class PropertyImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PropertyImage
-        fields = ["id", "image"]
+        fields = ["id", "image", "is_flagged"]
+        read_only_fields = ["is_flagged"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -147,7 +148,7 @@ class PropertySerializer(serializers.ModelSerializer):
     description = serializers.CharField(validators=[no_html_tags_validator])
     location = PropertyLocationWriteSerializer(write_only=True)
     location_detail = PropertyLocationReadSerializer(source="location", read_only=True)
-    images = PropertyImageSerializer(many=True, read_only=True)
+    images = serializers.SerializerMethodField()
     amenities = serializers.PrimaryKeyRelatedField(
         queryset=Amenity.objects.all(), many=True, required=False, write_only=True
     )
@@ -199,6 +200,19 @@ class PropertySerializer(serializers.ModelSerializer):
             "price_per_day": {"write_only": True},
             "price_per_month": {"write_only": True},
         }
+
+    def get_images(self, obj):
+        """
+        Returns a list of images for the property, filtering out flagged images
+        for regular users, while showing all images to the property owner and moderators.
+        """
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated and (user == obj.owner or user.is_moderator):
+            queryset = obj.images.all()
+        else:
+            queryset = obj.images.filter(is_flagged=False)
+        return PropertyImageSerializer(queryset, many=True, context=self.context).data
 
     def get_pricing(self, instance: Property) -> dict:
         """

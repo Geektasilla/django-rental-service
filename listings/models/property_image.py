@@ -24,6 +24,7 @@ class PropertyImage(models.Model):
             )
         ],
     )
+    is_flagged = models.BooleanField(_("flagged"), default=False)
 
     class Meta:
         verbose_name = _("property image")

@@ -104,6 +104,8 @@ def moderate_property_image(
         raw_response=result["raw_response"],
     )
     if result["flagged"]:
+        PropertyImage.objects.filter(pk=instance.pk).update(is_flagged=True)
         Property.objects.filter(pk=instance.property_id).update(
             moderation_status=Property.ModerationStatusChoices.REJECTED,
         )
+

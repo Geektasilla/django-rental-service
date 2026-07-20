@@ -50,6 +50,7 @@ class PropertyLocationInline(admin.StackedInline):
 class PropertyImageInline(admin.TabularInline):
     model = PropertyImage
     extra = 0
+    readonly_fields = ["is_flagged"]
 
 
 @admin.register(Property)

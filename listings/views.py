@@ -190,14 +190,17 @@ class PropertyViewSet(ActionPermissionsMixin, viewsets.ModelViewSet):
             raise as_drf_validation_error(exc)
         except IntegrityError:
             return Response(
-                {
-                    "detail": _(
-                        "A property cannot have more than the maximum number of images."
-                    )
-                },
+                {"detail": _("A property cannot have more than the maximum number of images.")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        serializer.instance.refresh_from_db()
+        data = PropertyImageSerializer(serializer.instance, context=self.get_serializer_context()).data
+        if serializer.instance.is_flagged:
+            data["detail"] = _(
+                "Photo failed moderation and is hidden from public listing view."
+            )
+        return Response(data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["delete"], url_path=r"images/(?P<image_id>\d+)")
     def delete_image(

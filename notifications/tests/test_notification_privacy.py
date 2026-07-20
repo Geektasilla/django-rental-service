@@ -12,8 +12,7 @@ class NotificationPrivacyTests(TestCase):
     """
     NotificationViewSet deliberately filters ``user=request.user`` by hand instead of reusing
     common.utils.visible_to_participants (that helper's staff-bypass would leak every user's
-    private notifications to any staff account - see tools/issues.md Issue #21). This is the one
-    thing that must never regress.
+    private notifications to any staff account). This is the one thing that must never regress.
     """
 
     def setUp(self) -> None:

@@ -14,7 +14,7 @@ class BookingOverlapTriggerTests(TestCase):
     check is bypassed by bulk_create()/bulk_update()/.update() (they skip .save()/full_clean()
     entirely). The BEFORE INSERT/UPDATE DB triggers (bookings/migrations/
     0006_booking_overlap_triggers.py) are the only thing that still catches it in that case - this
-    is the one permanent test for that SQLite trigger path (MySQL is untested, see tools/issues.md).
+    is the one permanent test for that SQLite trigger path (MySQL execution is untested).
     """
 
     def setUp(self) -> None:

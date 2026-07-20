@@ -17,7 +17,7 @@ class AccountDeletionTests(TestCase):
     """
     GDPR Art. 17 right-to-erasure vs. HGB/AO record-retention law: Booking.tenant/Ticket.user are
     PROTECT, so the account can't be hard-deleted while it has that history - this endpoint
-    anonymizes instead. See tools/issues.md Issue #21 for the full field-by-field rationale.
+    anonymizes instead.
     """
 
     def setUp(self) -> None:

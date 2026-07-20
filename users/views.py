@@ -6,6 +6,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.generics import (
     CreateAPIView,
     GenericAPIView,
+    ListAPIView,
     RetrieveUpdateAPIView,
     get_object_or_404,
 )
@@ -17,17 +18,20 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from notifications.models import Notification
 from users.models import User
 from users.models.agent import AgentProfile
 from users.models.owner import OwnerProfile
 from users.permissions import IsModerator
 from users.serializers import (
     AccountDeletionSerializer,
+    AgentProfileModerationSerializer,
     AgentProfileSerializer,
     ChangePasswordSerializer,
     EmailVerificationConfirmSerializer,
     EmailVerificationRequestSerializer,
     LogoutSerializer,
+    OwnerProfileModerationSerializer,
     OwnerProfileSerializer,
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
@@ -317,6 +321,30 @@ class SelfProfileView(APIView):
         return Response(serializer.data)
 
 
+def _notify_moderators_of_pending_owner_verification(profile: OwnerProfile) -> None:
+    """
+    Create an in-app Notification for every active moderator when an owner submits a
+    verification document - in-app only, moderators must check GET /api/v1/notifications/
+    themselves, same as _notify_moderators_of_pending_listing in listings/signals.py.
+
+    :param profile: the newly created OwnerProfile with a verification_document attached.
+    """
+    moderators = User.objects.filter(is_moderator=True, is_active=True)
+    Notification.objects.bulk_create(
+        (
+            Notification(
+                user=moderator,
+                message=str(
+                    _("New owner verification pending: %(email)s")
+                    % {"email": profile.user.email}
+                ),
+            )
+            for moderator in moderators
+        ),
+        batch_size=500,
+    )
+
+
 class OwnerProfileView(SelfProfileView):
     """Self-service create/view/update of the caller's own OwnerProfile."""
 
@@ -327,6 +355,51 @@ class OwnerProfileView(SelfProfileView):
     @staticmethod
     def role_check(user: User) -> bool:
         return user.is_owner
+
+    def post(self, request: Request) -> Response:
+        """Same as SelfProfileView.post(), plus notifying moderators if a document was attached."""
+        response = super().post(request)
+        if response.status_code == status.HTTP_201_CREATED:
+            profile = self.get_object()
+            if profile is not None and profile.verification_document:
+                _notify_moderators_of_pending_owner_verification(profile)
+        return response
+
+
+class PendingOwnerVerificationsView(ListAPIView):
+    """Moderator-only list of OwnerProfiles awaiting document verification."""
+
+    serializer_class = OwnerProfileModerationSerializer
+    permission_classes = [IsModerator]
+    queryset = (
+        OwnerProfile.objects.filter(is_verified=False)
+        .exclude(verification_document="")
+        .select_related("user")
+    )
+
+
+def _notify_moderators_of_pending_agent_certification(profile: AgentProfile) -> None:
+    """
+    Create an in-app Notification for every active moderator when a new agent registers -
+    in-app only, moderators must check GET /api/v1/notifications/ themselves, same as
+    _notify_moderators_of_pending_owner_verification above.
+
+    :param profile: the newly created AgentProfile, still uncertified.
+    """
+    moderators = User.objects.filter(is_moderator=True, is_active=True)
+    Notification.objects.bulk_create(
+        (
+            Notification(
+                user=moderator,
+                message=str(
+                    _("New agent certification pending: %(email)s")
+                    % {"email": profile.user.email}
+                ),
+            )
+            for moderator in moderators
+        ),
+        batch_size=500,
+    )
 
 
 class AgentProfileView(SelfProfileView):
@@ -339,6 +412,23 @@ class AgentProfileView(SelfProfileView):
     @staticmethod
     def role_check(user: User) -> bool:
         return user.is_agent
+
+    def post(self, request: Request) -> Response:
+        """Same as SelfProfileView.post(), plus notifying moderators of the new agent."""
+        response = super().post(request)
+        if response.status_code == status.HTTP_201_CREATED:
+            profile = self.get_object()
+            if profile is not None:
+                _notify_moderators_of_pending_agent_certification(profile)
+        return response
+
+
+class PendingAgentCertificationsView(ListAPIView):
+    """Moderator-only list of AgentProfiles awaiting certification."""
+
+    serializer_class = AgentProfileModerationSerializer
+    permission_classes = [IsModerator]
+    queryset = AgentProfile.objects.filter(is_certified=False).select_related("user")
 
 
 class TenantProfileView(SelfProfileView):

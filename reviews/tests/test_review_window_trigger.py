@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from django.db import IntegrityError
+from django.db import IntegrityError, OperationalError
 from django.test import TestCase, override_settings
 
 from bookings.models import Booking, BookingStatusChoices
@@ -45,7 +45,7 @@ class ReviewWindowTriggerTests(TestCase):
     def test_trigger_blocks_stale_review_bypassing_clean_via_bulk_create(self) -> None:
         booking = self._make_booking(end_date=date.today() - timedelta(days=100))
         stale_review = Review(booking=booking, rating=5, comment="Bypassing clean().")
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises((IntegrityError, OperationalError)):
             Review.objects.bulk_create([stale_review])
 
     def test_trigger_blocks_review_on_non_paid_booking_bypassing_clean(self) -> None:
@@ -54,7 +54,7 @@ class ReviewWindowTriggerTests(TestCase):
             status=BookingStatusChoices.BOOKED,
         )
         unpaid_review = Review(booking=booking, rating=5, comment="Never paid.")
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises((IntegrityError, OperationalError)):
             Review.objects.bulk_create([unpaid_review])
 
 

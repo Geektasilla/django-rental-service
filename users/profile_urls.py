@@ -7,6 +7,8 @@ from users.views import (
     ChangePasswordView,
     EmailVerificationRequestView,
     OwnerProfileView,
+    PendingAgentCertificationsView,
+    PendingOwnerVerificationsView,
     TenantProfileView,
     UserProfileView,
     VerifyOwnerProfileView,
@@ -30,6 +32,16 @@ urlpatterns = [
         "<int:user_id>/owner-profile/verify/",
         VerifyOwnerProfileView.as_view(),
         name="owner-profile-verify",
+    ),
+    path(
+        "owner-profiles/pending/",
+        PendingOwnerVerificationsView.as_view(),
+        name="owner-profiles-pending",
+    ),
+    path(
+        "agent-profiles/pending/",
+        PendingAgentCertificationsView.as_view(),
+        name="agent-profiles-pending",
     ),
     path(
         "<int:user_id>/agent-profile/certify/",

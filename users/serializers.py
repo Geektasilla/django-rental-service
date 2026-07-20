@@ -161,6 +161,18 @@ class OwnerProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ["is_verified", "verified_at", "status"]
 
 
+class OwnerProfileModerationSerializer(OwnerProfileSerializer):
+    """Read-only view of an OwnerProfile for moderators, exposing the user identity that the
+    self-service OwnerProfileSerializer omits (a moderator needs it to call
+    VerifyOwnerProfileView)."""
+
+    user_id = serializers.IntegerField(source="user.pk", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+
+    class Meta(OwnerProfileSerializer.Meta):
+        fields = OwnerProfileSerializer.Meta.fields + ["user_id", "email"]
+
+
 class AgentProfileSerializer(serializers.ModelSerializer):
     """
     Self-service create/view/update of the caller's own AgentProfile.
@@ -181,6 +193,18 @@ class AgentProfileSerializer(serializers.ModelSerializer):
             "status",
         ]
         read_only_fields = ["is_certified", "status"]
+
+
+class AgentProfileModerationSerializer(AgentProfileSerializer):
+    """Read-only view of an AgentProfile for moderators, exposing the user identity that the
+    self-service AgentProfileSerializer omits (a moderator needs it to call
+    CertifyAgentProfileView)."""
+
+    user_id = serializers.IntegerField(source="user.pk", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+
+    class Meta(AgentProfileSerializer.Meta):
+        fields = AgentProfileSerializer.Meta.fields + ["user_id", "email"]
 
 
 class TenantProfileSerializer(serializers.ModelSerializer):

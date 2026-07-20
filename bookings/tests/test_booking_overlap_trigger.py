@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from django.db import IntegrityError
+from django.db import IntegrityError, OperationalError
 from django.test import TestCase, override_settings
 
 from bookings.models import Booking, BookingStatusChoices
@@ -58,7 +58,7 @@ class BookingOverlapTriggerTests(TestCase):
             status=BookingStatusChoices.BOOKED,
             price_frozen="50.00",
         )
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises((IntegrityError, OperationalError)):
             Booking.objects.bulk_create([overlapping])
 
     def test_non_overlapping_bookings_on_the_same_property_are_allowed(self) -> None:

@@ -1,4 +1,5 @@
 from django.db.models import Count, Q, QuerySet
+from django.utils.translation import gettext_lazy as _
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 
 from common.mixins import ActionPermissionsMixin
 from common.utils import visible_to_participants
+from notifications.models import Notification
 from support.models import Ticket
 from support.permissions import IsAssignedSupportAgent
 from support.serializers import MessageSerializer, TicketSerializer
@@ -66,6 +68,13 @@ class TicketViewSet(
         if agent is not None:
             ticket.assigned_to = agent
             ticket.save(update_fields=["assigned_to"])
+            Notification.objects.create(
+                user=agent,
+                message=str(
+                    _("New support ticket assigned: %(subject)s")
+                    % {"subject": ticket.subject}
+                ),
+            )
 
     @action(detail=True, methods=["get", "post"], url_path="messages")
     def messages(self, request: Request, pk: str | None = None) -> Response:
@@ -79,6 +88,17 @@ class TicketViewSet(
             serializer = MessageSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save(ticket=ticket, sender=request.user)
+            recipient = (
+                ticket.assigned_to if request.user == ticket.user else ticket.user
+            )
+            if recipient is not None and recipient != request.user:
+                Notification.objects.create(
+                    user=recipient,
+                    message=str(
+                        _("New reply on ticket: %(subject)s")
+                        % {"subject": ticket.subject}
+                    ),
+                )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         message_qs = ticket.messages.select_related("sender")

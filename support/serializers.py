@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from common.validators import no_html_tags_validator
 from support.models import Message, Ticket
 
 
@@ -15,6 +16,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     assigned_to = serializers.PrimaryKeyRelatedField(read_only=True)
+    subject = serializers.CharField(max_length=255, validators=[no_html_tags_validator])
 
     class Meta:
         model = Ticket
@@ -37,6 +39,7 @@ class MessageSerializer(serializers.ModelSerializer):
     """Read/write representation of a Message. ``ticket``/``sender`` are set by the view, not the client."""
 
     sender = serializers.PrimaryKeyRelatedField(read_only=True)
+    body = serializers.CharField(validators=[no_html_tags_validator])
 
     class Meta:
         model = Message

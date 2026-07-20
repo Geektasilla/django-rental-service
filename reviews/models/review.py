@@ -58,6 +58,10 @@ class Review(models.Model):
             return
         if self.booking.status != BookingStatusChoices.PAID:
             raise ValidationError(_("A review can only be left for a paid booking."))
+        if timezone.now().date() < self.booking.end_date:
+            raise ValidationError(
+                _("A review can only be left after the booking's end date.")
+            )
         deadline = self.booking.end_date + timedelta(days=REVIEW_WINDOW_DAYS)
         if timezone.now().date() > deadline:
             raise ValidationError(

@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from common.utils import as_drf_validation_error
+from common.validators import no_html_tags_validator
 from listings.models import (
     Address,
     Amenity,
@@ -142,6 +143,8 @@ class PropertySerializer(serializers.ModelSerializer):
     own owner/agent directly.
     """
 
+    title = serializers.CharField(max_length=255, validators=[no_html_tags_validator])
+    description = serializers.CharField(validators=[no_html_tags_validator])
     location = PropertyLocationWriteSerializer(write_only=True)
     location_detail = PropertyLocationReadSerializer(source="location", read_only=True)
     images = PropertyImageSerializer(many=True, read_only=True)
@@ -155,6 +158,7 @@ class PropertySerializer(serializers.ModelSerializer):
     category_detail = CategorySerializer(source="category", read_only=True)
     popularity = serializers.IntegerField(read_only=True)
     pricing = serializers.SerializerMethodField()
+    is_active = serializers.BooleanField(default=True)
 
     class Meta:
         model = Property
@@ -189,6 +193,7 @@ class PropertySerializer(serializers.ModelSerializer):
             "moderation_status",
             "created_at",
             "updated_at",
+
         ]
         extra_kwargs = {
             "price_per_day": {"write_only": True},

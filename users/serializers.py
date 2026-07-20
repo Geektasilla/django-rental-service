@@ -2,6 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from common.validators import no_html_tags_validator
 from users.models import User
 from users.models.agent import AgentProfile
 from users.models.owner import OwnerProfile
@@ -26,6 +27,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         validators=[validate_password],
         label=_("password"),
         style={"input_type": "password"},
+    )
+
+    first_name = serializers.CharField(
+        max_length=150, required=False, allow_blank=True,
+        validators=[no_html_tags_validator],
+    )
+    last_name = serializers.CharField(
+        max_length=150, required=False, allow_blank=True,
+        validators=[no_html_tags_validator],
     )
 
     class Meta:
@@ -66,6 +76,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     Serializer for viewing and updating the authenticated user's profile.
     """
 
+    first_name = serializers.CharField(
+        max_length=150, required=False, allow_blank=True,
+        validators=[no_html_tags_validator],
+    )
+    last_name = serializers.CharField(
+        max_length=150, required=False, allow_blank=True,
+        validators=[no_html_tags_validator],
+    )
+
     class Meta:
         model = User
         fields = [
@@ -90,6 +109,28 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "is_moderator",
             "is_email_verified",
         ]
+
+    def validate(self, attrs: dict) -> dict:
+        """
+        :param attrs: validated field values.
+        :return: attrs, unchanged.
+        :raises serializers.ValidationError: if the request body attempts to set a read-only
+            field, or ``is_staff``/``is_superuser`` (not exposed in ``Meta.fields`` at all, but
+            silently dropped by DRF otherwise instead of surfacing the attempt to the caller).
+        """
+        restricted = [
+            field
+            for field in (*self.Meta.read_only_fields, "is_staff", "is_superuser")
+            if field in self.initial_data
+        ]
+        if restricted:
+            raise serializers.ValidationError(
+                {
+                    "detail": _("Cannot set restricted field(s): %(fields)s.")
+                    % {"fields": ", ".join(restricted)}
+                }
+            )
+        return attrs
 
 
 class OwnerProfileSerializer(serializers.ModelSerializer):

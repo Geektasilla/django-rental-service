@@ -11,6 +11,7 @@ class UserAdmin(DjangoUserAdmin):
 
     ordering = ["email"]
     list_display = [
+        "id",
         "email",
         "first_name",
         "last_name",
@@ -74,7 +75,11 @@ class UserAdmin(DjangoUserAdmin):
 
 
 class UserNameMixin:
-    """Adds first_name/last_name columns pulled from the related User."""
+    """Adds first_name/last_name/user_id columns pulled from the related User."""
+
+    @admin.display(description=_("User ID"), ordering="user_id")
+    def user_id(self, obj) -> int:
+        return obj.user_id
 
     @admin.display(description=_("First name"), ordering="user__first_name")
     def first_name(self, obj) -> str:
@@ -98,6 +103,7 @@ class TenantProfileAdmin(UserNameMixin, admin.ModelAdmin):
 @admin.register(OwnerProfile)
 class OwnerProfileAdmin(UserNameMixin, admin.ModelAdmin):
     list_display = [
+        "user_id",
         "user",
         "first_name",
         "last_name",
@@ -113,6 +119,7 @@ class OwnerProfileAdmin(UserNameMixin, admin.ModelAdmin):
 @admin.register(AgentProfile)
 class AgentProfileAdmin(UserNameMixin, admin.ModelAdmin):
     list_display = [
+        "user_id",
         "user",
         "first_name",
         "last_name",

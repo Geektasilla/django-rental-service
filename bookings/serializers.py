@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -5,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from bookings.models import Booking
+from bookings.models.booking import MAX_BOOKING_HORIZON_DAYS
 from common.utils import as_drf_validation_error
 from listings.models import Property
 
@@ -53,6 +56,23 @@ class BookingSerializer(serializers.ModelSerializer):
                 _(
                     "This start date has already passed - please choose today or a later date."
                 )
+            )
+        return value
+
+    def validate_end_date(self, value):
+        """
+        :param value: the requested end date, as submitted by the client.
+        :return: value, unchanged, if it's within MAX_BOOKING_HORIZON_DAYS of today.
+        :raises rest_framework.exceptions.ValidationError: if value is further out than
+            MAX_BOOKING_HORIZON_DAYS from today.
+        """
+        max_end_date = timezone.localdate() + datetime.timedelta(
+            days=MAX_BOOKING_HORIZON_DAYS
+        )
+        if value > max_end_date:
+            raise serializers.ValidationError(
+                _("Bookings cannot be made more than %(days)d days in advance.")
+                % {"days": MAX_BOOKING_HORIZON_DAYS}
             )
         return value
 

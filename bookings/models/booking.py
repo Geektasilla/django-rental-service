@@ -1,12 +1,17 @@
+import datetime
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from common.models import TimeStampedModel
 from listings.models import Property
 
 from .status import BookingStatusChoices
+
+MAX_BOOKING_HORIZON_DAYS = 365
 
 
 class Booking(TimeStampedModel):
@@ -67,19 +72,29 @@ class Booking(TimeStampedModel):
 
     def clean(self) -> None:
         """
-        Enforce that end_date falls after start_date, then the DAILY-rental calendar rule:
-        no two BOOKED/PAID bookings may overlap on the same property. PENDING requests don't
-        block dates yet - multiple tenants may request the same range, and the owner picks one
-        when approving it to BOOKED. LONG_TERM bookings rely on Property.is_active instead.
+        Enforce that end_date falls after start_date and within MAX_BOOKING_HORIZON_DAYS, then
+        the DAILY-rental calendar rule: no two BOOKED/PAID bookings may overlap on the same
+        property. PENDING requests don't block dates yet - multiple tenants may request the same
+        range, and the owner picks one when approving it to BOOKED. LONG_TERM bookings rely on
+        Property.is_active instead.
 
-        :raises ValidationError: if end_date isn't after start_date, or if the requested date
-            range overlaps an existing BOOKED/PAID booking for the same property.
+        :raises ValidationError: if end_date isn't after start_date, if end_date is further out
+            than MAX_BOOKING_HORIZON_DAYS from today, or if the requested date range overlaps an
+            existing BOOKED/PAID booking for the same property.
         """
         if self.property_id is None or self.start_date is None or self.end_date is None:
             return
         if self.end_date <= self.start_date:
             raise ValidationError(_("End date must be after the start date."))
 
+        max_end_date = timezone.localdate() + datetime.timedelta(
+            days=MAX_BOOKING_HORIZON_DAYS
+        )
+        if self.end_date > max_end_date:
+            raise ValidationError(
+                _("Bookings cannot be made more than %(days)d days in advance.")
+                % {"days": MAX_BOOKING_HORIZON_DAYS}
+            )
 
         conflicts = Booking.objects.filter(
             property_id=self.property_id,

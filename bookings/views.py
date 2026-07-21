@@ -21,10 +21,21 @@ from bookings.serializers import BookingSerializer
 from common.mixins import ActionPermissionsMixin
 from common.utils import as_drf_validation_error, visible_to_participants
 from listings.models import Property
+from notifications.models import Notification
 from reviews.serializers import ReviewSerializer
 from users.permissions import IsTenant
 
 CANCELLATION_NOTICE_DAYS = 21
+
+
+def _notify(user, message: str) -> None:
+    """
+    Create an in-app Notification for ``user``.
+
+    :param user: the recipient.
+    :param message: the already-translated notification text.
+    """
+    Notification.objects.create(user=user, message=message)
 
 
 class BookingViewSet(
@@ -91,12 +102,44 @@ class BookingViewSet(
                 booking.status = BookingStatusChoices.BOOKED
                 booking.save()
 
+                competing_bookings = list(
+                    Booking.objects.select_related("tenant").filter(
+                        property_id=booking.property_id,
+                        status=BookingStatusChoices.PENDING,
+                        start_date__lt=booking.end_date,
+                        end_date__gt=booking.start_date,
+                    ).exclude(pk=booking.pk)
+                )
                 Booking.objects.filter(
-                    property_id=booking.property_id,
-                    status=BookingStatusChoices.PENDING,
-                    start_date__lt=booking.end_date,
-                    end_date__gt=booking.start_date,
-                ).exclude(pk=booking.pk).update(status=BookingStatusChoices.CANCELLED)
+                    pk__in=[competing_booking.pk for competing_booking in competing_bookings]
+                ).update(status=BookingStatusChoices.CANCELLED)
+
+                _notify(
+                    booking.tenant,
+                    str(
+                        _("Your booking for %(title)s from %(start)s to %(end)s has been confirmed.")
+                        % {
+                            "title": booking.property.title,
+                            "start": booking.start_date,
+                            "end": booking.end_date,
+                        }
+                    ),
+                )
+                for competing_booking in competing_bookings:
+                    _notify(
+                        competing_booking.tenant,
+                        str(
+                            _(
+                                "Your booking request for %(title)s from %(start)s to "
+                                "%(end)s was declined because those dates are already booked."
+                            )
+                            % {
+                                "title": booking.property.title,
+                                "start": competing_booking.start_date,
+                                "end": competing_booking.end_date,
+                            }
+                        ),
+                    )
         except DjangoValidationError as exc:
             raise as_drf_validation_error(exc)
         except IntegrityError:
@@ -128,6 +171,13 @@ class BookingViewSet(
             )
         booking.status = BookingStatusChoices.PAID
         booking.save()
+        _notify(
+            booking.tenant,
+            str(
+                _("Payment for your booking of %(title)s has been confirmed.")
+                % {"title": booking.property.title}
+            ),
+        )
         return Response(self.get_serializer(booking).data)
 
     @action(detail=True, methods=["post"])
@@ -161,6 +211,23 @@ class BookingViewSet(
                 )
         booking.status = BookingStatusChoices.CANCELLED
         booking.save()
+
+        other_party = (
+            booking.property.owner
+            if request.user.id == booking.tenant_id
+            else booking.tenant
+        )
+        _notify(
+            other_party,
+            str(
+                _("The booking for %(title)s from %(start)s to %(end)s has been cancelled.")
+                % {
+                    "title": booking.property.title,
+                    "start": booking.start_date,
+                    "end": booking.end_date,
+                }
+            ),
+        )
         return Response(self.get_serializer(booking).data)
 
     @action(detail=True, methods=["post"])

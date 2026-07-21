@@ -56,6 +56,7 @@ class PropertyImageInline(admin.TabularInline):
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
     list_display = [
+        "id",
         "title",
         "owner",
         "category",

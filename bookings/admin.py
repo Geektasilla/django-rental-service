@@ -7,6 +7,7 @@ from .models import Booking
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
     list_display = [
+        "id",
         "property",
         "tenant",
         "tenant_first_name",
